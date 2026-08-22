@@ -1,17 +1,16 @@
-"""
-Módulo de conexão com banco de dados (se aplicável).
-Pode ser configurado com SQLAlchemy, SQLModel ou SQLite conforme o projeto evoluir.
-"""
+from typing import Optional
 
-def get_db():
-    """
-    Dependency generator para sessões de banco de dados.
-    Pronto para integração com ORMs (ex: SQLAlchemy SessionLocal).
-    """
-    # Exemplo futuro:
-    # db = SessionLocal()
-    # try:
-    #     yield db
-    # finally:
-    #     db.close()
-    pass
+
+class Database:
+    def __init__(self):
+        self.connection: Optional[str] = None
+
+    def connect(self):
+        self.connection = "database_connection_placeholder"
+        return self.connection
+
+    def disconnect(self):
+        self.connection = None
+
+
+database = Database()

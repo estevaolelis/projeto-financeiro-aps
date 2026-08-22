@@ -1,37 +1,27 @@
-"""
-Ponto de entrada da aplicação FastAPI (Padrão MVC).
-"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.config import settings
-from app.routers.api import api_router
+from app.routes.exemplo_route import router as exemplo_router
 
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.VERSION,
-    description="Backend estruturado no padrão MVC para o projeto de Orientação e Educação Financeira.",
-    docs_url="/docs",
-    redoc_url="/redoc",
-)
+app = FastAPI(title=settings.app_name, debug=settings.debug)
 
-# Configuração de CORS para comunicação com o Frontend (Vite / React)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Inclusão das rotas da API centralizadas
-app.include_router(api_router, prefix=settings.API_PREFIX)
+app.include_router(exemplo_router)
 
-@app.get("/", tags=["Sistema"])
-def root():
-    """Endpoint raiz com informações da API."""
-    return {
-        "projeto": settings.PROJECT_NAME,
-        "versao": settings.VERSION,
-        "documentacao": "/docs",
-        "padrao_arquitetural": "MVC (Model-View-Controller)",
-    }
+
+@app.get("/")
+def read_root():
+    return {"message": f"{settings.app_name} está no ar."}
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
