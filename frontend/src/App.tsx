@@ -6,6 +6,7 @@ import Calculadora from './pages/Calculadora';
 import PerfilInvestidor from './pages/PerfilInvestidor';
 import Videos from './pages/Videos';
 import FAQ from './pages/FAQ';
+import Acesso from './pages/Acesso';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
             <Route path="/perfil" element={<PerfilInvestidor />} />
             <Route path="/videos" element={<Videos />} />
             <Route path="/faq" element={<FAQ />} />
+            <Route path="/acesso" element={<Acesso />} />
           </Routes>
         </main>
         <Footer />

@@ -9,10 +9,14 @@ import {
   Menu, 
   X 
 } from 'lucide-react';
+import { clearSession, getStoredUser } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 
 export default function Navbar() {
+  const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false)
+    const user = getStoredUser();
 
     const toggleMenu = () => setIsOpen(!isOpen)
 
@@ -68,6 +72,9 @@ export default function Navbar() {
             >
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
+          </div>
+          <div className="hidden items-center gap-3 md:flex">
+            {user ? <button type="button" onClick={() => { clearSession(); navigate('/acesso'); }} className="text-sm font-medium text-slate-400 transition hover:text-white">Sair</button> : <NavLink to="/acesso" className="flex items-center gap-2 rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"><UserCheck className="h-4 w-4" /> Entrar</NavLink>}
           </div>
         </div>
       </div>
