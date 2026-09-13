@@ -121,3 +121,38 @@ py -m venv .venv
 - Adicionar rotas e serviços
 - Implementar autenticação
 - Conectar frontend com backend
+
+## 8) MySQL com Docker Compose
+
+Instale o Docker Desktop e confirme que ele está em execução. Na raiz do
+projeto, crie o arquivo local de configuração:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Edite o `.env`, substitua as duas senhas de exemplo e inicie o banco:
+
+```powershell
+docker compose up -d
+```
+
+Para conferir o estado e acompanhar os logs:
+
+```powershell
+docker compose ps
+docker compose logs -f mysql
+```
+
+O MySQL ficará disponível em `localhost:3307`, usando o banco e o usuário
+definidos no `.env`. O volume `mysql_data` preserva os dados quando o container
+for parado ou recriado.
+
+Para parar o banco sem apagar os dados:
+
+```powershell
+docker compose down
+```
+
+Para apagar também o volume e todos os dados do banco, use
+`docker compose down --volumes` somente quando essa exclusão for intencional.
