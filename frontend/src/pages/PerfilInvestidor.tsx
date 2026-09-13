@@ -1,8 +1,7 @@
+import { Box, Paper, Typography } from '@mui/material';
+
 export default function PerfilInvestidor() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-slate-800">Perfil de Investidor</h1>
-      <p className="text-slate-600 mt-2">Questionário para descobrir seu perfil de risco.</p>
-    </div>
+    <Box sx={{ py: 4 }}><Paper sx={{ p: 4 }}><Typography variant="h4">Perfil de investidor</Typography><Typography color="text.secondary" sx={{ mt: 1 }}>Questionário para descobrir seu perfil de risco.</Typography></Paper></Box>
   );
 }

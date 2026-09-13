@@ -1,8 +1,7 @@
+import { Box, Paper, Typography } from '@mui/material';
+
 export default function Calculadora() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-slate-800">Calculadora de Investimentos</h1>
-      <p className="text-slate-600 mt-2">Em desenvolvimento...</p>
-    </div>
+    <Box sx={{ py: 4 }}><Paper sx={{ p: 4 }}><Typography variant="h4">Calculadora de investimentos</Typography><Typography color="text.secondary" sx={{ mt: 1 }}>Em desenvolvimento.</Typography></Paper></Box>
   );
 }

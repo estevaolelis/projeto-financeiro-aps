@@ -1,7 +1,13 @@
+import { Box, Container, Typography } from '@mui/material';
+
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 text-slate-400 py-6 text-center text-sm mt-auto">
-      <p>© 2026 FinançasApp - Projeto de Educação Financeira</p>
-    </footer>
+    <Box component="footer" sx={{ borderTop: 1, borderColor: 'divider', py: 3, mt: 'auto' }}>
+      <Container maxWidth="xl">
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+          © 2026 FinançasApp - Projeto de Educação Financeira
+        </Typography>
+      </Container>
+    </Box>
   );
 }

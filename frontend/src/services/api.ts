@@ -40,7 +40,16 @@ export function login(email: string, senha: string) {
 
 export function getStoredUser(): User | null {
 	const storedUser = localStorage.getItem('financeiro_user');
-	return storedUser ? (JSON.parse(storedUser) as User) : null;
+	if (!storedUser) return null;
+	try {
+		return JSON.parse(storedUser) as User;
+	} catch {
+		return null;
+	}
+}
+
+export function isAuthenticated() {
+	return Boolean(localStorage.getItem('financeiro_token') && getStoredUser());
 }
 
 export function saveSession(auth: AuthResponse) {

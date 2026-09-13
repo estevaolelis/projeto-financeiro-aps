@@ -1,8 +1,7 @@
+import { Box, Paper, Typography } from '@mui/material';
+
 export default function Home() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-slate-800">Orientação Financeira</h1>
-      <p className="text-slate-600 mt-2">Dicas e conteúdos sobre educação financeira.</p>
-    </div>
+    <Box sx={{ py: { xs: 4, md: 8 } }}><Paper sx={{ p: { xs: 3, md: 6 } }}><Typography variant="overline" color="primary.light">Educação financeira</Typography><Typography variant="h2" sx={{ mt: 1 }}>Orientação financeira</Typography><Typography color="text.secondary" sx={{ mt: 2, maxWidth: 620 }}>Dicas e conteúdos para tomar decisões mais claras e construir uma relação saudável com o seu dinheiro.</Typography></Paper></Box>
   );
 }

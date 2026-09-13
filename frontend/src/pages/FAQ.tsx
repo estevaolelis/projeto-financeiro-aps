@@ -1,8 +1,7 @@
+import { Box, Paper, Typography } from '@mui/material';
+
 export default function FAQ() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-slate-800">Perguntas Frequentes (FAQ)</h1>
-      <p className="text-slate-600 mt-2">Principais dúvidas e respostas sobre finanças.</p>
-    </div>
+    <Box sx={{ py: 4 }}><Paper sx={{ p: 4 }}><Typography variant="h4">Perguntas frequentes</Typography><Typography color="text.secondary" sx={{ mt: 1 }}>Principais dúvidas e respostas sobre finanças.</Typography></Paper></Box>
   );
 }

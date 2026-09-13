@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import { Box, Container } from '@mui/material';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -7,24 +9,29 @@ import PerfilInvestidor from './pages/PerfilInvestidor';
 import Videos from './pages/Videos';
 import FAQ from './pages/FAQ';
 import Acesso from './pages/Acesso';
+import { isAuthenticated } from './services/api';
+
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  return isAuthenticated() ? children : <Navigate to="/acesso" replace />;
+}
 
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="flex flex-col min-h-screen w-full bg-slate-950 text-white">
+      <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <Navbar />
-        <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Container component="main" maxWidth="xl" sx={{ flex: 1, py: { xs: 3, md: 5 } }}>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/calculadora" element={<Calculadora />} />
-            <Route path="/perfil" element={<PerfilInvestidor />} />
-            <Route path="/videos" element={<Videos />} />
-            <Route path="/faq" element={<FAQ />} />
+            <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+            <Route path="/calculadora" element={<ProtectedRoute><Calculadora /></ProtectedRoute>} />
+            <Route path="/perfil" element={<ProtectedRoute><PerfilInvestidor /></ProtectedRoute>} />
+            <Route path="/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
+            <Route path="/faq" element={<ProtectedRoute><FAQ /></ProtectedRoute>} />
             <Route path="/acesso" element={<Acesso />} />
           </Routes>
-        </main>
+        </Container>
         <Footer />
-      </div>
+      </Box>
     </BrowserRouter>
   );
 }
