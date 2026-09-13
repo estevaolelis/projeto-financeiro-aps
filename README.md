@@ -137,6 +137,10 @@ Edite o `.env`, substitua as duas senhas de exemplo e inicie o banco:
 docker compose up -d
 ```
 
+Na primeira inicialização, o Compose cria as tabelas automaticamente a partir
+de `backend/database/init.sql`. Esse script só é executado quando o volume do
+MySQL ainda está vazio.
+
 Para conferir o estado e acompanhar os logs:
 
 ```powershell
@@ -156,3 +160,12 @@ docker compose down
 
 Para apagar também o volume e todos os dados do banco, use
 `docker compose down --volumes` somente quando essa exclusão for intencional.
+
+Se o container já foi iniciado antes da criação ou alteração do `init.sql`,
+recrie o banco para executar o script desde o início:
+
+```powershell
+docker compose down --volumes
+docker compose up -d
+docker compose ps
+```
