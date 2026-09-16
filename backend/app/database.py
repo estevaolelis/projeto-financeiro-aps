@@ -5,24 +5,24 @@ from urllib.parse import unquote, urlparse
 import mysql.connector
 from mysql.connector import MySQLConnection
 
-from app.config import settings
+from app.config import configuracoes
 
 
-def _connection_config() -> dict[str, object]:
-    parsed_url = urlparse(settings.database_url)
+def _configuracao_conexao() -> dict[str, object]:
+    url_analisada = urlparse(configuracoes.url_banco_dados)
     return {
-        "host": parsed_url.hostname or "localhost",
-        "port": parsed_url.port or 3306,
-        "user": unquote(parsed_url.username or ""),
-        "password": unquote(parsed_url.password or ""),
-        "database": parsed_url.path.lstrip("/"),
+        "host": url_analisada.hostname or "localhost",
+        "port": url_analisada.port or 3306,
+        "user": unquote(url_analisada.username or ""),
+        "password": unquote(url_analisada.password or ""),
+        "database": url_analisada.path.lstrip("/"),
     }
 
 
 @contextmanager
-def get_connection() -> Iterator[MySQLConnection]:
-    connection = mysql.connector.connect(**_connection_config())
+def obter_conexao() -> Iterator[MySQLConnection]:
+    conexao = mysql.connector.connect(**_configuracao_conexao())
     try:
-        yield connection
+        yield conexao
     finally:
-        connection.close()
+        conexao.close()

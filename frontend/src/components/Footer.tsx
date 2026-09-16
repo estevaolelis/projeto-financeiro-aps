@@ -1,6 +1,6 @@
 import { Box, Container, Typography } from '@mui/material';
 
-export default function Footer() {
+export default function Rodape() {
   return (
     <Box component="footer" sx={{ borderTop: 1, borderColor: 'divider', py: 3, mt: 'auto' }}>
       <Container maxWidth="xl">

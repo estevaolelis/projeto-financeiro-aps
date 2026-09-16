@@ -50,7 +50,7 @@ pip install -r requirements.txt
 Inicie a API:
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn app.main:aplicacao --reload
 ```
 
 A API estará disponível em:
@@ -90,7 +90,7 @@ Abra 2 terminais:
 ```bash
 cd backend
 .\.venv\Scripts\activate
-uvicorn app.main:app --reload
+uvicorn app.main:aplicacao --reload
 ```
 
 ### Terminal 2 - Frontend

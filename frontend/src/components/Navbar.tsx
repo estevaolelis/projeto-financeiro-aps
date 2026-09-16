@@ -5,22 +5,22 @@ import {
   ListItemButton, ListItemIcon, ListItemText, Stack, Toolbar, Typography,
 } from '@mui/material';
 import { Calculator, HelpCircle, Menu, TrendingUp, UserCheck, Video, X } from 'lucide-react';
-import { clearSession, getStoredUser } from '../services/api';
+import { limparSessao, obterUsuarioArmazenado } from '../services/api';
 
-const navItems = [
-  { name: 'Início', path: '/', icon: TrendingUp },
-  { name: 'Calculadora', path: '/calculadora', icon: Calculator },
-  { name: 'Perfil de Investidor', path: '/perfil', icon: UserCheck },
-  { name: 'Vídeos', path: '/videos', icon: Video },
-  { name: 'Dúvidas', path: '/faq', icon: HelpCircle },
+const itensNavegacao = [
+  { nome: 'Início', caminho: '/', icone: TrendingUp },
+  { nome: 'Calculadora', caminho: '/calculadora', icone: Calculator },
+  { nome: 'Perfil de Investidor', caminho: '/perfil', icone: UserCheck },
+  { nome: 'Vídeos', caminho: '/videos', icone: Video },
+  { nome: 'Dúvidas', caminho: '/perguntas', icone: HelpCircle },
 ];
 
-export default function Navbar() {
-  const navigate = useNavigate();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const user = getStoredUser();
-  const closeMobile = () => setMobileOpen(false);
-  const logout = () => { clearSession(); navigate('/acesso'); };
+export default function BarraNavegacao() {
+  const navegar = useNavigate();
+  const [menuMovelAberto, definirMenuMovelAberto] = useState(false);
+  const usuario = obterUsuarioArmazenado();
+  const fecharMenuMovel = () => definirMenuMovelAberto(false);
+  const sair = () => { limparSessao(); navegar('/acesso'); };
 
   return (
     <AppBar position="sticky" color="transparent" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'background.default', backdropFilter: 'blur(12px)' }}>
@@ -30,29 +30,29 @@ export default function Navbar() {
             Finanças<span style={{ color: '#7c83ff' }}>.</span>
           </Typography>
           <Stack direction="row" spacing={0.5} sx={{ display: { xs: 'none', md: 'flex' } }}>
-            {navItems.map(({ name, path, icon: Icon }) => (
-              <Button key={path} component={NavLink} to={path} startIcon={<Icon size={17} />} sx={{ color: 'text.secondary', '&.active': { color: 'primary.main', bgcolor: 'rgba(124,131,255,.12)' } }}>
-                {name}
+            {itensNavegacao.map(({ nome, caminho, icone: Icone }) => (
+              <Button key={caminho} component={NavLink} to={caminho} startIcon={<Icone size={17} />} sx={{ color: 'text.secondary', '&.active': { color: 'primary.main', bgcolor: 'rgba(124,131,255,.12)' } }}>
+                {nome}
               </Button>
             ))}
           </Stack>
-          {user ? <Button onClick={logout} color="inherit">Sair</Button> : <Button component={NavLink} to="/acesso" variant="contained" startIcon={<UserCheck size={17} />}>Entrar</Button>}
-          <IconButton onClick={() => setMobileOpen(true)} sx={{ display: { xs: 'inline-flex', md: 'none' } }} aria-label="Abrir menu">
+          {usuario ? <Button onClick={sair} color="inherit">Sair</Button> : <Button component={NavLink} to="/acesso" variant="contained" startIcon={<UserCheck size={17} />}>Entrar</Button>}
+          <IconButton onClick={() => definirMenuMovelAberto(true)} sx={{ display: { xs: 'inline-flex', md: 'none' } }} aria-label="Abrir menu">
             <Menu />
           </IconButton>
         </Toolbar>
       </Container>
-      <Drawer anchor="right" open={mobileOpen} onClose={closeMobile}>
+      <Drawer anchor="right" open={menuMovelAberto} onClose={fecharMenuMovel}>
         <Box sx={{ width: 280, pt: 1 }} role="presentation">
           <Stack direction="row" sx={{ justifyContent: 'flex-end', px: 1 }}>
-            <IconButton onClick={closeMobile} aria-label="Fechar menu"><X /></IconButton>
+            <IconButton onClick={fecharMenuMovel} aria-label="Fechar menu"><X /></IconButton>
           </Stack>
           <List>
-            {navItems.map(({ name, path, icon: Icon }) => (
-              <ListItem key={path} disablePadding>
-                <ListItemButton component={NavLink} to={path} onClick={closeMobile}>
-                  <ListItemIcon><Icon size={19} /></ListItemIcon>
-                  <ListItemText primary={name} />
+            {itensNavegacao.map(({ nome, caminho, icone: Icone }) => (
+              <ListItem key={caminho} disablePadding>
+                <ListItemButton component={NavLink} to={caminho} onClick={fecharMenuMovel}>
+                  <ListItemIcon><Icone size={19} /></ListItemIcon>
+                  <ListItemText primary={nome} />
                 </ListItemButton>
               </ListItem>
             ))}

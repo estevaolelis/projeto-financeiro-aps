@@ -1,63 +1,63 @@
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+const URL_API = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
-export type User = {
+export type Usuario = {
 	id_usuario: number;
 	nome: string;
 	email: string;
 };
 
-type AuthResponse = {
-	access_token: string;
-	token_type: string;
-	user: User;
+type RespostaAutenticacao = {
+	token_acesso: string;
+	tipo_token: string;
+	usuario: Usuario;
 };
 
-async function request<T>(path: string, options: RequestInit): Promise<T> {
-	const response = await fetch(`${API_URL}${path}`, {
-		...options,
-		headers: { 'Content-Type': 'application/json', ...options.headers },
+async function requisitar<T>(caminho: string, opcoes: RequestInit): Promise<T> {
+	const resposta = await fetch(`${URL_API}${caminho}`, {
+		...opcoes,
+		headers: { 'Content-Type': 'application/json', ...opcoes.headers },
 	});
-	const body = await response.json().catch(() => ({}));
-	if (!response.ok) {
-		throw new Error(body.detail ?? 'Não foi possível concluir a operação.');
+	const corpo = await resposta.json().catch(() => ({}));
+	if (!resposta.ok) {
+		throw new Error(corpo.detail ?? 'Não foi possível concluir a operação.');
 	}
-	return body as T;
+	return corpo as T;
 }
 
-export function register(nome: string, email: string, senha: string) {
-	return request<User>('/api/auth/register', {
+export function cadastrar(nome: string, email: string, senha: string) {
+	return requisitar<Usuario>('/api/autenticacao/cadastro', {
 		method: 'POST',
 		body: JSON.stringify({ nome, email, senha }),
 	});
 }
 
-export function login(email: string, senha: string) {
-	return request<AuthResponse>('/api/auth/login', {
+export function entrar(email: string, senha: string) {
+	return requisitar<RespostaAutenticacao>('/api/autenticacao/entrar', {
 		method: 'POST',
 		body: JSON.stringify({ email, senha }),
 	});
 }
 
-export function getStoredUser(): User | null {
-	const storedUser = localStorage.getItem('financeiro_user');
-	if (!storedUser) return null;
+export function obterUsuarioArmazenado(): Usuario | null {
+	const usuarioArmazenado = localStorage.getItem('financeiro_usuario');
+	if (!usuarioArmazenado) return null;
 	try {
-		return JSON.parse(storedUser) as User;
+		return JSON.parse(usuarioArmazenado) as Usuario;
 	} catch {
 		return null;
 	}
 }
 
-export function isAuthenticated() {
-	return Boolean(localStorage.getItem('financeiro_token') && getStoredUser());
+export function estaAutenticado() {
+	return Boolean(localStorage.getItem('financeiro_token') && obterUsuarioArmazenado());
 }
 
-export function saveSession(auth: AuthResponse) {
-	localStorage.setItem('financeiro_token', auth.access_token);
-	localStorage.setItem('financeiro_user', JSON.stringify(auth.user));
+export function salvarSessao(autenticacao: RespostaAutenticacao) {
+	localStorage.setItem('financeiro_token', autenticacao.token_acesso);
+	localStorage.setItem('financeiro_usuario', JSON.stringify(autenticacao.usuario));
 }
 
-export function clearSession() {
+export function limparSessao() {
 	localStorage.removeItem('financeiro_token');
-	localStorage.removeItem('financeiro_user');
+	localStorage.removeItem('financeiro_usuario');
 }

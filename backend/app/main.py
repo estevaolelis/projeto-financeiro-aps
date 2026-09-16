@@ -1,29 +1,32 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import settings
-from app.routes.auth_route import router as auth_router
-from app.routes.exemplo_route import router as exemplo_router
+from app.config import configuracoes
+from app.routes.auth_route import roteador as roteador_autenticacao
+from app.routes.exemplo_route import roteador as roteador_exemplo
 
-app = FastAPI(title=settings.app_name, debug=settings.debug)
+aplicacao = FastAPI(
+    title=configuracoes.nome_aplicacao,
+    debug=configuracoes.depuracao,
+)
 
-app.add_middleware(
+aplicacao.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=configuracoes.origens_cors,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(exemplo_router)
-app.include_router(auth_router)
+aplicacao.include_router(roteador_exemplo)
+aplicacao.include_router(roteador_autenticacao)
 
 
-@app.get("/")
-def read_root():
-    return {"message": f"{settings.app_name} está no ar."}
+@aplicacao.get("/")
+def ler_raiz():
+    return {"mensagem": f"{configuracoes.nome_aplicacao} está no ar."}
 
 
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
+@aplicacao.get("/saude")
+def verificar_saude():
+    return {"situacao": "ok"}

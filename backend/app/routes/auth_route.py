@@ -1,21 +1,21 @@
 from fastapi import APIRouter, status
 
-from app.controllers.auth_controller import login, me, register
-from app.models.auth_model import LoginResponse, UserResponse
+from app.controllers.auth_controller import cadastrar, entrar, eu
+from app.models.auth_model import RespostaEntrada, RespostaUsuario
 
-router = APIRouter(prefix="/api/auth", tags=["autenticacao"])
+roteador = APIRouter(prefix="/api/autenticacao", tags=["autenticacao"])
 
-router.add_api_route(
-    "/register",
-    register,
+roteador.add_api_route(
+    "/cadastro",
+    cadastrar,
     methods=["POST"],
-    response_model=UserResponse,
+    response_model=RespostaUsuario,
     status_code=status.HTTP_201_CREATED,
 )
-router.add_api_route(
-    "/login",
-    login,
+roteador.add_api_route(
+    "/entrar",
+    entrar,
     methods=["POST"],
-    response_model=LoginResponse,
+    response_model=RespostaEntrada,
 )
-router.add_api_route("/me", me, methods=["GET"], response_model=UserResponse)
+roteador.add_api_route("/eu", eu, methods=["GET"], response_model=RespostaUsuario)

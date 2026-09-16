@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/api", tags=["exemplo"])
+roteador = APIRouter(prefix="/api", tags=["exemplo"])
 
 
-@router.get("/exemplo")
-def get_exemplo():
-    return {"message": "Rota de exemplo no padrão MVC"}
+@roteador.get("/exemplo")
+def obter_exemplo():
+    return {"mensagem": "Rota de exemplo no padrão MVC"}

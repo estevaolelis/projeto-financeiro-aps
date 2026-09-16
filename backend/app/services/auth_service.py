@@ -4,109 +4,122 @@ import bcrypt
 import jwt
 from mysql.connector import IntegrityError
 
-from app.config import settings
-from app.database import get_connection
+from app.config import configuracoes
+from app.database import obter_conexao
 from app.models.auth_model import (
-    LoginRequest,
-    LoginResponse,
-    RegisterRequest,
-    UserResponse,
+    RespostaEntrada,
+    RespostaUsuario,
+    SolicitacaoCadastro,
+    SolicitacaoEntrada,
 )
 
 
-class EmailAlreadyRegisteredError(Exception):
+class ErroEmailJaCadastrado(Exception):
     """Indica que o e-mail informado já pertence a outro usuário."""
 
 
-class InvalidCredentialsError(Exception):
+class ErroCredenciaisInvalidas(Exception):
     """Indica que as credenciais de acesso não são válidas."""
 
 
-class InvalidTokenError(Exception):
+class ErroTokenInvalido(Exception):
     """Indica que o token não pode ser usado para autenticação."""
 
 
-class UserNotFoundError(Exception):
+class ErroUsuarioNaoEncontrado(Exception):
     """Indica que o usuário do token não existe mais."""
 
 
-def _create_token(user_id: int) -> str:
-    expires_at = datetime.now(timezone.utc) + timedelta(
-        minutes=settings.jwt_expiration_minutes
+def _criar_token(id_usuario: int) -> str:
+    expira_em = datetime.now(timezone.utc) + timedelta(
+        minutes=configuracoes.minutos_expiracao_jwt
     )
     return jwt.encode(
-        {"sub": str(user_id), "exp": expires_at},
-        settings.jwt_secret,
+        {"sub": str(id_usuario), "exp": expira_em},
+        configuracoes.segredo_jwt,
         algorithm="HS256",
     )
 
 
-def _to_user_response(row: tuple[object, ...]) -> UserResponse:
-    return UserResponse(id_usuario=int(row[0]), nome=str(row[1]), email=str(row[2]))
+def _para_resposta_usuario(registro: tuple[object, ...]) -> RespostaUsuario:
+    return RespostaUsuario(
+        id_usuario=int(registro[0]),
+        nome=str(registro[1]),
+        email=str(registro[2]),
+    )
 
 
-def register_user(data: RegisterRequest) -> UserResponse:
-    nome = data.nome.strip()
-    email = data.email.lower()
-    password_hash = bcrypt.hashpw(data.senha.encode(), bcrypt.gensalt()).decode()
+def cadastrar_usuario(dados: SolicitacaoCadastro) -> RespostaUsuario:
+    nome = dados.nome.strip()
+    email = dados.email.lower()
+    hash_senha = bcrypt.hashpw(dados.senha.encode(), bcrypt.gensalt()).decode()
 
     try:
-        with get_connection() as connection:
-            cursor = connection.cursor()
+        with obter_conexao() as conexao:
+            cursor = conexao.cursor()
             try:
                 cursor.execute(
                     "INSERT INTO usuario (nome, email, senha_hash) VALUES (%s, %s, %s)",
-                    (nome, email, password_hash),
+                    (nome, email, hash_senha),
                 )
-                connection.commit()
-                user_id = cursor.lastrowid
+                conexao.commit()
+                id_usuario = cursor.lastrowid
             finally:
                 cursor.close()
-    except IntegrityError as error:
-        if error.errno == 1062:
-            raise EmailAlreadyRegisteredError from error
+    except IntegrityError as erro:
+        if erro.errno == 1062:
+            raise ErroEmailJaCadastrado from erro
         raise
 
-    return UserResponse(id_usuario=int(user_id), nome=nome, email=email)
+    return RespostaUsuario(id_usuario=int(id_usuario), nome=nome, email=email)
 
 
-def authenticate_user(data: LoginRequest) -> LoginResponse:
-    with get_connection() as connection:
-        cursor = connection.cursor()
+def autenticar_usuario(dados: SolicitacaoEntrada) -> RespostaEntrada:
+    with obter_conexao() as conexao:
+        cursor = conexao.cursor()
         try:
             cursor.execute(
                 "SELECT id_usuario, nome, email, senha_hash FROM usuario WHERE email = %s",
-                (data.email.lower(),),
+                (dados.email.lower(),),
             )
-            row = cursor.fetchone()
+            registro = cursor.fetchone()
         finally:
             cursor.close()
 
-    if row is None or not bcrypt.checkpw(data.senha.encode(), str(row[3]).encode()):
-        raise InvalidCredentialsError
+    if registro is None or not bcrypt.checkpw(
+        dados.senha.encode(), str(registro[3]).encode()
+    ):
+        raise ErroCredenciaisInvalidas
 
-    user = _to_user_response(row)
-    return LoginResponse(access_token=_create_token(user.id_usuario), user=user)
+    usuario = _para_resposta_usuario(registro)
+    return RespostaEntrada(
+        token_acesso=_criar_token(usuario.id_usuario),
+        usuario=usuario,
+    )
 
 
-def get_user_from_token(token: str) -> UserResponse:
+def obter_usuario_do_token(token: str) -> RespostaUsuario:
     try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
-        user_id = int(payload["sub"])
-    except (jwt.InvalidTokenError, KeyError, TypeError, ValueError) as error:
-        raise InvalidTokenError from error
+        conteudo = jwt.decode(
+            token,
+            configuracoes.segredo_jwt,
+            algorithms=["HS256"],
+        )
+        id_usuario = int(conteudo["sub"])
+    except (jwt.InvalidTokenError, KeyError, TypeError, ValueError) as erro:
+        raise ErroTokenInvalido from erro
 
-    with get_connection() as connection:
-        cursor = connection.cursor()
+    with obter_conexao() as conexao:
+        cursor = conexao.cursor()
         try:
             cursor.execute(
                 "SELECT id_usuario, nome, email FROM usuario WHERE id_usuario = %s",
-                (user_id,),
+                (id_usuario,),
             )
-            row = cursor.fetchone()
+            registro = cursor.fetchone()
         finally:
             cursor.close()
 
-    if row is None:
-        raise UserNotFoundError
-    return _to_user_response(row)
+    if registro is None:
+        raise ErroUsuarioNaoEncontrado
+    return _para_resposta_usuario(registro)
