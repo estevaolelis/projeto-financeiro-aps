@@ -9,11 +9,11 @@ Estrutura base para começar do zero com FastAPI em padrão MVC.
   - config.py
   - database.py
   - main.py
-  - controllers/
-  - models/
-  - routes/
-  - services/
-  - views/
+  - controllers/ — adapta regras de negócio para HTTP
+  - models/ — contratos de entrada e saída da API
+  - routes/ — declara URLs, métodos e códigos de resposta
+  - services/ — concentra regras de negócio e acesso aos dados
+  - views/ — reservado para futuras respostas renderizadas
 
 ## Como iniciar
 
