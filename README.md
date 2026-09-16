@@ -131,7 +131,7 @@ projeto, crie o arquivo local de configuração:
 Copy-Item .env.example .env
 ```
 
-Edite o `.env`, substitua as duas senhas e o `JWT_SECRET` de exemplo e inicie o banco:
+Edite o `.env`, substitua as duas senhas e o `SEGREDO_JWT` de exemplo e inicie o banco:
 
 ```powershell
 docker compose up -d
@@ -153,7 +153,7 @@ definidos no `.env`. O volume `mysql_data` preserva os dados quando o container
 for parado ou recriado.
 
 Se a senha tiver caracteres especiais como `/`, `@` ou `#`, eles precisam ser
-codificados na `DATABASE_URL` (por exemplo, `/` vira `%2F`).
+codificados na `URL_BANCO_DADOS` (por exemplo, `/` vira `%2F`).
 
 Para parar o banco sem apagar os dados:
 

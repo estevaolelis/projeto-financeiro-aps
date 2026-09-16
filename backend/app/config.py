@@ -18,11 +18,14 @@ class Configuracoes(BaseModel):
         ]
     )
     url_banco_dados: str = os.getenv(
-        "DATABASE_URL",
+        "URL_BANCO_DADOS",
         "mysql+pymysql://projeto_financeiro:projeto_financeiro@localhost:3307/projeto_financeiro",
     )
-    segredo_jwt: str = os.getenv("JWT_SECRET", "altere-este-segredo-em-desenvolvimento")
-    minutos_expiracao_jwt: int = int(os.getenv("JWT_EXPIRATION_MINUTES", "120"))
+    segredo_jwt: str = os.getenv(
+        "SEGREDO_JWT",
+        "altere-este-segredo-em-desenvolvimento",
+    )
+    minutos_expiracao_jwt: int = int(os.getenv("MINUTOS_EXPIRACAO_JWT", "120"))
 
 
 configuracoes = Configuracoes()
