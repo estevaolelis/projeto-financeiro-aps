@@ -1,0 +1,28 @@
+{
+  "runOnStartup": true,
+  "terminals": [
+    {
+      "splitTerminals": [
+        {
+          "name": "Docker (MySQL)",
+          "icon": "database",
+          "commands": ["docker compose up"]
+        },
+        {
+          "name": "Backend (FastAPI)",
+          "icon": "server-environment",
+          "commands": [
+            "cd backend",
+            ".venv\\Scripts\\Activate.ps1",
+            "uvicorn app.main:aplicacao --reload"
+          ]
+        },
+        {
+          "name": "Frontend (Vite)",
+          "icon": "browser",
+          "commands": ["cd frontend", "npm run dev"]
+        }
+      ]
+    }
+  ]
+}
