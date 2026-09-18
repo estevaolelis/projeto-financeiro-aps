@@ -56,10 +56,6 @@ export default function Acesso() {
         <Typography variant="overline" color="primary.light" sx={{ letterSpacing: '.22em', fontWeight: 700 }}>Sua vida financeira, com clareza</Typography>
         <Typography variant="h2" sx={{ mt: 1, maxWidth: 600 }}>Um lugar seguro para cuidar dos seus planos.</Typography>
         <Typography variant="h6" color="text.secondary" sx={{ mt: 3, maxWidth: 560, fontWeight: 400, lineHeight: 1.6 }}>Crie sua conta para acompanhar suas decisões financeiras e manter seus dados organizados em um só lugar.</Typography>
-        <Stack spacing={2} sx={{ mt: 4 }}>
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}><CheckCircle2 size={20} color="#5eead4" /><Typography color="text.secondary">Seus dados ficam separados por usuário</Typography></Stack>
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}><LockKeyhole size={20} color="#5eead4" /><Typography color="text.secondary">Senha armazenada com proteção</Typography></Stack>
-        </Stack>
       </Box>
       <Paper elevation={8} sx={{ p: { xs: 3, sm: 4 } }}>
         <Tabs value={modo} onChange={alterarModo} variant="fullWidth" sx={{ mb: 4 }}><Tab value="entrada" label="Entrar" /><Tab value="cadastro" label="Criar conta" /></Tabs>

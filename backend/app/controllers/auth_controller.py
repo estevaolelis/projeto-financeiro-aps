@@ -20,9 +20,7 @@ from app.services.auth_service import (
 esquema_portador = HTTPBearer(auto_error=False)
 
 
-def obter_usuario_atual(
-    credenciais: HTTPAuthorizationCredentials | None = Depends(esquema_portador),
-) -> RespostaUsuario:
+def obter_usuario_atual(credenciais: HTTPAuthorizationCredentials | None = Depends(esquema_portador)) -> RespostaUsuario:
     if credenciais is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
