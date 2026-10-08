@@ -3,7 +3,8 @@ import type { FormEvent } from 'react';
 import { Alert, Box, Button, Divider, Paper, Stack, Tab, Tabs, TextField, Typography } from '@mui/material';
 import { ArrowRight, CheckCircle2, LockKeyhole, UserPlus } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { cadastrar, entrar, estaAutenticado, salvarSessao } from '../services/api';
+import { cadastrar, entrar } from '../services/auth';
+import { estaAutenticado, salvarSessao } from '../services/sessao';
 
 type Modo = 'entrada' | 'cadastro';
 

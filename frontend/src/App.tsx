@@ -9,7 +9,8 @@ import PerfilInvestidor from './pages/PerfilInvestidor';
 import PaginaVideos from './pages/Videos';
 import PerguntasFrequentes from './pages/FAQ';
 import Acesso from './pages/Acesso';
-import { estaAutenticado } from './services/api';
+import Movimentacoes from './pages/Movimentacoes';
+import { estaAutenticado } from './services/sessao';
 
 function RotaProtegida({ children: conteudo }: { children: ReactNode }) {
   return estaAutenticado() ? conteudo : <Navigate to="/acesso" replace />;
@@ -23,6 +24,7 @@ export default function Aplicacao() {
         <Container component="main" maxWidth="xl" sx={{ flex: 1, py: { xs: 3, md: 5 } }}>
           <Routes>
             <Route path="/" element={<RotaProtegida><Inicio /></RotaProtegida>} />
+            <Route path="/movimentacoes" element={<RotaProtegida><Movimentacoes /></RotaProtegida>} />
             <Route path="/calculadora" element={<RotaProtegida><Calculadora /></RotaProtegida>} />
             <Route path="/perfil" element={<RotaProtegida><PerfilInvestidor /></RotaProtegida>} />
             <Route path="/videos" element={<RotaProtegida><PaginaVideos /></RotaProtegida>} />

@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import configuracoes
 from app.routes.auth_route import roteador as roteador_autenticacao
 from app.routes.exemplo_route import roteador as roteador_exemplo
+from app.routes.movimentacao_route import roteador as roteador_movimentacao
 
 aplicacao = FastAPI(
     title=configuracoes.nome_aplicacao,
@@ -20,6 +21,7 @@ aplicacao.add_middleware(
 
 aplicacao.include_router(roteador_exemplo)
 aplicacao.include_router(roteador_autenticacao)
+aplicacao.include_router(roteador_movimentacao)
 
 
 @aplicacao.get("/")
