@@ -5,6 +5,8 @@ import {
   MenuItem, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography,
 } from '@mui/material';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { formatarData, formatarMoeda, hoje } from '../utils/formatacao';
 import { cadastrarCategoria, listarCategorias } from '../services/categorias';
 import type { Categoria, TipoMovimentacao } from '../services/categorias';
 import {
@@ -15,13 +17,6 @@ import type { DadosMovimentacao, FiltrosMovimentacao, Movimentacao, NaturezaMovi
 const FILTROS_VAZIOS: FiltrosMovimentacao = { tipo: '', id_categoria: '', data_inicio: '', data_fim: '' };
 
 const NOVA_CATEGORIA = 'nova';
-
-const formatarMoeda = (valor: string | number) =>
-  Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-const formatarData = (data: string) => data.split('-').reverse().join('/');
-
-const hoje = () => new Date().toLocaleDateString('sv-SE');
 
 const formularioVazio = (tipo: TipoMovimentacao = 'DESPESA') => ({
   tipo,
@@ -35,6 +30,8 @@ const formularioVazio = (tipo: TipoMovimentacao = 'DESPESA') => ({
 });
 
 export default function Movimentacoes() {
+  const localizacao = useLocation();
+  const navegar = useNavigate();
   const [movimentacoes, definirMovimentacoes] = useState<Movimentacao[]>([]);
   const [categorias, definirCategorias] = useState<Categoria[]>([]);
   const [filtros, definirFiltros] = useState<FiltrosMovimentacao>(FILTROS_VAZIOS);
@@ -58,6 +55,17 @@ export default function Movimentacoes() {
   }, [filtros]);
 
   useEffect(() => { void carregar(); }, [carregar]);
+
+  // Vindo do botão "Nova movimentação" da Home: abre o modal e limpa o sinal para não reabrir ao atualizar a página.
+  useEffect(() => {
+    if (localizacao.state?.abrirNova) {
+      definirIdEdicao(null);
+      definirFormulario(formularioVazio());
+      definirErroFormulario('');
+      definirDialogoAberto(true);
+      navegar(localizacao.pathname, { replace: true, state: null });
+    }
+  }, [localizacao, navegar]);
 
   const totais = useMemo(() => {
     const somar = (tipo: TipoMovimentacao) =>
