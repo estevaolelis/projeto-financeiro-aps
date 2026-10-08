@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import Depends, HTTPException, status
 
 from app.controllers.auth_controller import obter_usuario_atual
@@ -7,6 +9,7 @@ from app.models.movimentacao_model import (
     RespostaMovimentacao,
     SolicitacaoCategoria,
     SolicitacaoMovimentacao,
+    TipoMovimentacao,
 )
 from app.services import movimentacao_service as servico
 from app.services.movimentacao_service import (
@@ -45,9 +48,20 @@ def cadastrar_categoria(
 
 
 def listar_movimentacoes(
+    tipo: TipoMovimentacao | None = None,
+    id_categoria: int | None = None,
+    data_inicio: date | None = None,
+    data_fim: date | None = None,
     usuario: RespostaUsuario = Depends(obter_usuario_atual),
 ) -> list[RespostaMovimentacao]:
-    return servico.listar_movimentacoes(usuario.id_usuario)
+    if data_inicio and data_fim and data_inicio > data_fim:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A data inicial não pode ser maior que a data final",
+        )
+    return servico.listar_movimentacoes(
+        usuario.id_usuario, tipo, id_categoria, data_inicio, data_fim
+    )
 
 
 def cadastrar_movimentacao(

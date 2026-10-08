@@ -2,8 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import {
   Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton,
-  MenuItem, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, ToggleButton,
-  ToggleButtonGroup, Typography,
+  MenuItem, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography,
 } from '@mui/material';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { cadastrarCategoria, listarCategorias } from '../services/categorias';
@@ -11,9 +10,9 @@ import type { Categoria, TipoMovimentacao } from '../services/categorias';
 import {
   cadastrarMovimentacao, editarMovimentacao, excluirMovimentacao, listarMovimentacoes,
 } from '../services/movimentacoes';
-import type { DadosMovimentacao, Movimentacao, NaturezaMovimentacao } from '../services/movimentacoes';
+import type { DadosMovimentacao, FiltrosMovimentacao, Movimentacao, NaturezaMovimentacao } from '../services/movimentacoes';
 
-type Filtro = 'TODOS' | TipoMovimentacao;
+const FILTROS_VAZIOS: FiltrosMovimentacao = { tipo: '', id_categoria: '', data_inicio: '', data_fim: '' };
 
 const NOVA_CATEGORIA = 'nova';
 
@@ -38,7 +37,7 @@ const formularioVazio = (tipo: TipoMovimentacao = 'DESPESA') => ({
 export default function Movimentacoes() {
   const [movimentacoes, definirMovimentacoes] = useState<Movimentacao[]>([]);
   const [categorias, definirCategorias] = useState<Categoria[]>([]);
-  const [filtro, definirFiltro] = useState<Filtro>('TODOS');
+  const [filtros, definirFiltros] = useState<FiltrosMovimentacao>(FILTROS_VAZIOS);
   const [erro, definirErro] = useState('');
   const [erroFormulario, definirErroFormulario] = useState('');
   const [dialogoAberto, definirDialogoAberto] = useState(false);
@@ -49,21 +48,17 @@ export default function Movimentacoes() {
 
   const carregar = useCallback(async () => {
     try {
-      const [listaMovimentacoes, listaCategorias] = await Promise.all([listarMovimentacoes(), listarCategorias()]);
+      const [listaMovimentacoes, listaCategorias] = await Promise.all([listarMovimentacoes(filtros), listarCategorias()]);
       definirMovimentacoes(listaMovimentacoes);
       definirCategorias(listaCategorias);
       definirErro('');
     } catch (erroRequisicao) {
       definirErro(erroRequisicao instanceof Error ? erroRequisicao.message : 'Não foi possível carregar os dados.');
     }
-  }, []);
+  }, [filtros]);
 
   useEffect(() => { void carregar(); }, [carregar]);
 
-  const visiveis = useMemo(
-    () => movimentacoes.filter((item) => filtro === 'TODOS' || item.tipo === filtro),
-    [movimentacoes, filtro],
-  );
   const totais = useMemo(() => {
     const somar = (tipo: TipoMovimentacao) =>
       movimentacoes.filter((item) => item.tipo === tipo).reduce((soma, item) => soma + Number(item.valor), 0);
@@ -72,6 +67,12 @@ export default function Movimentacoes() {
     return { receitas, despesas, saldo: receitas - despesas };
   }, [movimentacoes]);
   const categoriasDoTipo = categorias.filter((categoria) => categoria.tipo === formulario.tipo);
+  const categoriasFiltraveis = categorias.filter((categoria) => !filtros.tipo || categoria.tipo === filtros.tipo);
+  const temFiltro = Object.values(filtros).some((valor) => valor !== '');
+
+  function atualizarFiltro(parcial: Partial<FiltrosMovimentacao>) {
+    definirFiltros((atual) => ({ ...atual, ...parcial }));
+  }
 
   function atualizar<K extends keyof ReturnType<typeof formularioVazio>>(campo: K, valor: ReturnType<typeof formularioVazio>[K]) {
     definirFormulario((atual) => ({ ...atual, [campo]: valor }));
@@ -79,7 +80,7 @@ export default function Movimentacoes() {
 
   function abrirNova() {
     definirIdEdicao(null);
-    definirFormulario(formularioVazio(filtro === 'RECEITA' ? 'RECEITA' : 'DESPESA'));
+    definirFormulario(formularioVazio(filtros.tipo === 'RECEITA' ? 'RECEITA' : 'DESPESA'));
     definirErroFormulario('');
     definirDialogoAberto(true);
   }
@@ -164,11 +165,21 @@ export default function Movimentacoes() {
 
       {erro && <Alert severity="error">{erro}</Alert>}
 
-      <ToggleButtonGroup exclusive size="small" value={filtro} onChange={(_, valor: Filtro | null) => valor && definirFiltro(valor)}>
-        <ToggleButton value="TODOS">Todas</ToggleButton>
-        <ToggleButton value="RECEITA">Receitas</ToggleButton>
-        <ToggleButton value="DESPESA">Despesas</ToggleButton>
-      </ToggleButtonGroup>
+      <Paper sx={{ p: 2 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr) auto' }, gap: 2, alignItems: 'center' }}>
+          <TextField select size="small" label="Tipo" value={filtros.tipo}
+            onChange={(evento) => atualizarFiltro({ tipo: evento.target.value as FiltrosMovimentacao['tipo'], id_categoria: '' })}>
+            <MenuItem value="">Todos</MenuItem><MenuItem value="RECEITA">Receitas</MenuItem><MenuItem value="DESPESA">Despesas</MenuItem>
+          </TextField>
+          <TextField select size="small" label="Categoria" value={filtros.id_categoria} onChange={(evento) => atualizarFiltro({ id_categoria: evento.target.value === '' ? '' : Number(evento.target.value) })}>
+            <MenuItem value="">Todas</MenuItem>
+            {categoriasFiltraveis.map((categoria) => <MenuItem key={categoria.id_categoria} value={categoria.id_categoria}>{categoria.nome}</MenuItem>)}
+          </TextField>
+          <TextField size="small" type="date" label="De" value={filtros.data_inicio} onChange={(evento) => atualizarFiltro({ data_inicio: evento.target.value })} slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: filtros.data_fim || undefined } }} />
+          <TextField size="small" type="date" label="Até" value={filtros.data_fim} onChange={(evento) => atualizarFiltro({ data_fim: evento.target.value })} slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: filtros.data_inicio || undefined } }} />
+          <Button color="inherit" disabled={!temFiltro} onClick={() => definirFiltros(FILTROS_VAZIOS)}>Limpar filtros</Button>
+        </Box>
+      </Paper>
 
       <Paper sx={{ overflowX: 'auto' }}>
         <Table size="small">
@@ -179,10 +190,10 @@ export default function Movimentacoes() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {visiveis.length === 0 && (
-              <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4, color: 'text.secondary' }}>Nenhuma movimentação cadastrada.</TableCell></TableRow>
+            {movimentacoes.length === 0 && (
+              <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4, color: 'text.secondary' }}>{temFiltro ? 'Nenhuma movimentação encontrada com estes filtros.' : 'Nenhuma movimentação cadastrada.'}</TableCell></TableRow>
             )}
-            {visiveis.map((item) => (
+            {movimentacoes.map((item) => (
               <TableRow key={item.id_movimentacao} hover>
                 <TableCell>{formatarData(item.data_movimentacao)}</TableCell>
                 <TableCell>{item.descricao}</TableCell>

@@ -18,8 +18,19 @@ export type Movimentacao = DadosMovimentacao & {
 	nome_categoria: string;
 };
 
-export function listarMovimentacoes() {
-	return requisitarAutenticado<Movimentacao[]>('/api/movimentacoes');
+export type FiltrosMovimentacao = {
+	tipo: TipoMovimentacao | '';
+	id_categoria: number | '';
+	data_inicio: string;
+	data_fim: string;
+};
+
+export function listarMovimentacoes(filtros: FiltrosMovimentacao) {
+	const consulta = new URLSearchParams();
+	Object.entries(filtros).forEach(([campo, valor]) => {
+		if (valor !== '') consulta.set(campo, String(valor));
+	});
+	return requisitarAutenticado<Movimentacao[]>(`/api/movimentacoes?${consulta}`);
 }
 
 export function cadastrarMovimentacao(dados: DadosMovimentacao) {

@@ -1,3 +1,5 @@
+from datetime import date
+
 from mysql.connector import IntegrityError
 
 from app.database import obter_conexao
@@ -98,12 +100,28 @@ def cadastrar_categoria(id_usuario: int, dados: SolicitacaoCategoria) -> Respost
     return RespostaCategoria(id_categoria=id_categoria, nome=nome, tipo=dados.tipo)
 
 
-def listar_movimentacoes(id_usuario: int) -> list[RespostaMovimentacao]:
-    registros = _consultar(
-        _SELECT_MOVIMENTACAO
-        + " ORDER BY m.data_movimentacao DESC, m.id_movimentacao DESC",
-        (id_usuario,),
+def listar_movimentacoes(
+    id_usuario: int,
+    tipo: str | None = None,
+    id_categoria: int | None = None,
+    data_inicio: date | None = None,
+    data_fim: date | None = None,
+) -> list[RespostaMovimentacao]:
+    filtros = (
+        ("m.tipo = %s", tipo),
+        ("m.id_categoria = %s", id_categoria),
+        ("m.data_movimentacao >= %s", data_inicio),
+        ("m.data_movimentacao <= %s", data_fim),
     )
+    consulta = _SELECT_MOVIMENTACAO
+    parametros: list[object] = [id_usuario]
+    for condicao, valor in filtros:
+        if valor is not None:
+            consulta += f" AND {condicao}"
+            parametros.append(valor)
+    consulta += " ORDER BY m.data_movimentacao DESC, m.id_movimentacao DESC"
+
+    registros = _consultar(consulta, tuple(parametros))
     return [RespostaMovimentacao(**registro) for registro in registros]
 
 
