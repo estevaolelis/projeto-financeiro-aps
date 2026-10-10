@@ -12,7 +12,7 @@ const itensNavegacao = [
   { nome: 'Movimentações', caminho: '/movimentacoes', icone: ArrowLeftRight },
   { nome: 'Calculadora', caminho: '/calculadora', icone: Calculator },
   { nome: 'Perfil de Investidor', caminho: '/perfil', icone: UserCheck },
-  { nome: 'Vídeos', caminho: '/videos', icone: Video },
+  { nome: 'Orientações Financeiras', caminho: '/videos', icone: Video },
   { nome: 'Dúvidas', caminho: '/perguntas', icone: HelpCircle },
 ];
 
