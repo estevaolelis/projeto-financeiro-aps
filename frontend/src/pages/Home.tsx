@@ -5,7 +5,10 @@ import { ArrowRight, Plus } from 'lucide-react';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { obterUsuarioArmazenado } from '../services/sessao';
+import AlertasOrcamento from '../components/AlertasOrcamento';
 import { listarMovimentacoes } from '../services/movimentacoes';
+import { listarOrcamentos } from '../services/orcamentos';
+import type { Orcamento } from '../services/orcamentos';
 import type { Movimentacao } from '../services/movimentacoes';
 import { formatarData, formatarMoeda, hoje } from '../utils/formatacao';
 
@@ -16,12 +19,19 @@ export default function Inicio() {
   const [movimentacoes, definirMovimentacoes] = useState<Movimentacao[]>([]);
   const [carregado, definirCarregado] = useState(false);
   const [erro, definirErro] = useState('');
+  const [orcamentos, definirOrcamentos] = useState<Orcamento[]>([]);
 
   useEffect(() => {
     listarMovimentacoes(FILTROS_VAZIOS)
       .then(definirMovimentacoes)
       .catch((erroRequisicao) => definirErro(erroRequisicao instanceof Error ? erroRequisicao.message : 'Não foi possível carregar os dados.'))
       .finally(() => definirCarregado(true));
+  }, []);
+
+  // Os alertas são complementares: se falharem, a Home continua funcionando sem eles.
+  useEffect(() => {
+    const dataAtual = new Date();
+    listarOrcamentos(dataAtual.getMonth() + 1, dataAtual.getFullYear()).then(definirOrcamentos).catch(() => undefined);
   }, []);
 
   const mesAtual = hoje().slice(0, 7);
@@ -77,6 +87,8 @@ export default function Inicio() {
       </Stack>
 
       {erro && <Alert severity="error">{erro}</Alert>}
+
+      <AlertasOrcamento orcamentos={orcamentos} />
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
         <Paper sx={{ p: 2 }}><Typography color="text.secondary" variant="body2">Receitas do mês</Typography><Typography variant="h5" color="success.main" sx={{ fontWeight: 700 }}>{formatarMoeda(resumo.receitas)}</Typography></Paper>
