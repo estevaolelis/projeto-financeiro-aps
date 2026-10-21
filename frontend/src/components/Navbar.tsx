@@ -25,15 +25,15 @@ export default function BarraNavegacao() {
   const sair = () => { limparSessao(); navegar('/acesso'); };
 
   return (
-    <AppBar position="sticky" color="transparent" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'background.default', backdropFilter: 'blur(12px)' }}>
+    <AppBar position="sticky" color="transparent" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'rgba(16,18,26,.72)', backdropFilter: 'blur(16px) saturate(140%)' }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters sx={{ minHeight: 72, gap: 3 }}>
-          <Typography component={NavLink} to="/" variant="h6" sx={{ color: 'text.primary', textDecoration: 'none', fontWeight: 800, mr: 'auto' }}>
+          <Typography component={NavLink} to="/" variant="h6" sx={{ color: 'text.primary', textDecoration: 'none', fontWeight: 800, letterSpacing: '-0.02em', mr: 'auto' }}>
             Finanças<span style={{ color: '#7c83ff' }}>.</span>
           </Typography>
           <Stack direction="row" spacing={0.5} sx={{ display: { xs: 'none', md: 'flex' } }}>
             {itensNavegacao.map(({ nome, caminho, icone: Icone }) => (
-              <Button key={caminho} component={NavLink} to={caminho} startIcon={<Icone size={17} />} sx={{ color: 'text.secondary', '&.active': { color: 'primary.main', bgcolor: 'rgba(124,131,255,.12)' } }}>
+              <Button key={caminho} component={NavLink} to={caminho} startIcon={<Icone size={17} />} sx={{ color: 'text.secondary', borderRadius: 999, px: 1.75, '&:hover': { color: 'text.primary', bgcolor: 'rgba(255,255,255,.05)' }, '&.active': { color: '#aab0ff', bgcolor: 'rgba(124,131,255,.16)' } }}>
                 {nome}
               </Button>
             ))}
