@@ -18,7 +18,6 @@ type PropsCampo = {
   rotulo: string;
   valor: string;
   aoMudar: (valor: string) => void;
-  /** Devolve a mensagem de erro, ou '' quando o valor é aceito. */
   validar: (numeroDigitado: number) => string;
   prefixo?: string;
   sufixo?: string;
@@ -31,7 +30,7 @@ function Campo({ rotulo, valor, aoMudar, validar, prefixo, sufixo, opcional }: P
     const digitado = numero(valor);
     return Number.isNaN(digitado) ? MSG_OBRIGATORIO : validar(digitado);
   })();
-  const mostrarErro = mensagem !== '' && !vazio; // não acusa erro em campo ainda não preenchido
+  const mostrarErro = mensagem !== '' && !vazio;
   return (
     <TextField
       label={rotulo}
@@ -50,7 +49,6 @@ function Campo({ rotulo, valor, aoMudar, validar, prefixo, sufixo, opcional }: P
   );
 }
 
-/** Resultado de um campo como número válido, ou null se vazio/inválido/recusado pela validação. */
 const valido = (texto: string, validar: (n: number) => string, opcional = false) => {
   if (texto.trim() === '') return opcional ? 0 : null;
   const digitado = numero(texto);

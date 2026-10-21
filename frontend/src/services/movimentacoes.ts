@@ -27,7 +27,6 @@ export type FiltrosMovimentacao = {
 
 export type PaginaMovimentacoes = {
 	limite: number;
-	/** Último item já recebido: a próxima página começa logo depois dele. */
 	cursor?: { data: string; id: number };
 };
 
@@ -45,7 +44,6 @@ function consultaDosFiltros(filtros: FiltrosMovimentacao) {
 	return consulta;
 }
 
-/** Sem `pagina`, devolve todas as movimentações (usado pelo dashboard e pelos simuladores). */
 export function listarMovimentacoes(filtros: FiltrosMovimentacao, pagina?: PaginaMovimentacoes) {
 	const consulta = consultaDosFiltros(filtros);
 	if (pagina) {

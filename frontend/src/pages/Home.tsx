@@ -98,7 +98,6 @@ export default function Inicio() {
       .finally(() => definirCarregado(true));
   }, []);
 
-  // Os alertas são complementares: se falharem, a Home continua funcionando sem eles.
   useEffect(() => {
     const dataAtual = new Date();
     listarOrcamentos(dataAtual.getMonth() + 1, dataAtual.getFullYear()).then(definirOrcamentos).catch(() => undefined);

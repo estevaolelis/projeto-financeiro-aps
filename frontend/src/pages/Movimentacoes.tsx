@@ -18,7 +18,6 @@ const FILTROS_VAZIOS: FiltrosMovimentacao = { tipo: '', id_categoria: '', data_i
 
 const NOVA_CATEGORIA = 'nova';
 
-// Cada página traz 30 itens; pedimos um a mais só para saber se existe uma próxima.
 const TAMANHO_PAGINA = 30;
 const RESUMO_VAZIO: ResumoMovimentacoes = { receitas: '0', despesas: '0', quantidade: 0 };
 
@@ -56,7 +55,6 @@ export default function Movimentacoes() {
   const [categoriasAbertas, definirCategoriasAbertas] = useState(false);
   const [categoriaExclusao, definirCategoriaExclusao] = useState<Categoria | null>(null);
 
-  // Recarrega do início (filtros novos ou dado alterado). `geracao` descarta respostas de buscas já superadas.
   const carregar = useCallback(async () => {
     const minhaGeracao = ++geracao.current;
     try {
@@ -102,8 +100,6 @@ export default function Movimentacoes() {
 
   useEffect(() => { void carregar(); }, [carregar]);
 
-  // Carrega a próxima página quando o fim da lista se aproxima da tela. O observador é recriado a cada
-  // página recebida, então, se o fim ainda estiver visível (tela alta), ele dispara de novo sozinho.
   useEffect(() => {
     const alvo = sentinela.current;
     if (!alvo || !temMais || erroMais) return undefined;
@@ -114,7 +110,6 @@ export default function Movimentacoes() {
     return () => observador.disconnect();
   }, [carregarMais, temMais, erroMais]);
 
-  // Vindo do botão "Nova movimentação" da Home: abre o modal e limpa o sinal para não reabrir ao atualizar a página.
   useEffect(() => {
     if (localizacao.state?.abrirNova) {
       definirIdEdicao(null);
@@ -210,8 +205,7 @@ export default function Movimentacoes() {
       definirErro(erroRequisicao instanceof Error ? erroRequisicao.message : 'Não foi possível excluir.');
     }
   }
-
-  // O valor exibido no campo fechado deve ser só o nome (sem o botão de excluir do item).
+  
   const nomeCategoria = (valor: unknown) =>
     valor === NOVA_CATEGORIA ? '+ Nova categoria…' : categorias.find((categoria) => categoria.id_categoria === valor)?.nome ?? '';
 

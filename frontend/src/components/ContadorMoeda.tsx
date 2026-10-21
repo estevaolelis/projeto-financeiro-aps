@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { formatarMoeda } from '../utils/formatacao';
 
-/** Valor em R$ que anima do valor anterior até o novo (sem animação se o usuário preferir menos movimento). */
 export default function ContadorMoeda({ valor }: { valor: number }) {
   const [exibido, definirExibido] = useState(valor);
   const origem = useRef(valor);

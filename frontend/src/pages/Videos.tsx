@@ -11,7 +11,7 @@ type Video = {
   titulo: string;
   canal: string;
   descricao: string;
-  url: string; // cole o link do YouTube aqui
+  url: string;
 };
 
 const orientacoes: Orientacao[] = [
@@ -87,7 +87,6 @@ const orientacoes: Orientacao[] = [
   },
 ];
 
-// Adicione aqui os vídeos escolhidos. O botão só aparece quando a url estiver preenchida.
 const videos: Video[] = [
   {
     titulo: 'COMO MONTAR UMA CARTEIRA DE INVESTIMENTOS PARA INICIANTES (NA PRÁTICA)',
@@ -109,7 +108,6 @@ const videos: Video[] = [
   },
 ];
 
-/** Miniatura do YouTube a partir do link (youtu.be/ID ou youtube.com/watch?v=ID); vazio se não reconhecer. */
 function miniatura(url: string) {
   try {
     const endereco = new URL(url);

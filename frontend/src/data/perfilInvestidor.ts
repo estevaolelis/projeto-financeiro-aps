@@ -74,7 +74,6 @@ export type Perfil = {
 	cor: string;
 	resumo: string;
 	caracteristicas: string[];
-	/** Faixas de referência (educativas) por classe de ativo, em %. */
 	alocacao: { classe: string; percentual: number; cor: string }[];
 	produtos: string[];
 };
@@ -121,7 +120,6 @@ export const PERFIS: Record<PerfilId, Perfil> = {
 	},
 };
 
-/** Pontuação total -> perfil. Mínimo 7 pontos, máximo 28. */
 export function classificar(pontos: number): PerfilId {
 	if (pontos <= 14) return 'CONSERVADOR';
 	if (pontos <= 21) return 'MODERADO';
