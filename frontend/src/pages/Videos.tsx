@@ -1,7 +1,5 @@
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Card, CardActions, CardContent, Paper, Typography,
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Chip, Paper, Stack, Typography } from '@mui/material';
+import { ChevronDown, ExternalLink, Play } from 'lucide-react';
 
 type Orientacao = {
   titulo: string;
@@ -111,80 +109,86 @@ const videos: Video[] = [
   },
 ];
 
+/** Miniatura do YouTube a partir do link (youtu.be/ID ou youtube.com/watch?v=ID); vazio se não reconhecer. */
+function miniatura(url: string) {
+  try {
+    const endereco = new URL(url);
+    const id = endereco.hostname === 'youtu.be' ? endereco.pathname.slice(1) : endereco.searchParams.get('v');
+    return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
+  } catch {
+    return '';
+  }
+}
+
 export default function PaginaVideos() {
   return (
-    <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <Paper sx={{ p: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800 }}>Orientações Financeiras</Typography>
-        <Typography color="text.secondary" sx={{ mt: 1, mb: 3 }}>
-          Dicas gerais para organizar o dinheiro e começar a investir com mais segurança.
-        </Typography>
+    <Stack spacing={4}>
+      <Box>
+        <Typography variant="h4" sx={{ fontWeight: 800 }}>Orientações financeiras</Typography>
+        <Typography color="text.secondary">Dicas gerais para organizar o dinheiro e começar a investir com mais segurança.</Typography>
+      </Box>
 
+      <Box>
         {orientacoes.map((item, indice) => (
-          <Accordion key={item.titulo} defaultExpanded={indice === 0} disableGutters>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                {item.titulo}
-              </Typography>
+          <Accordion
+            key={item.titulo}
+            defaultExpanded={indice === 0}
+            disableGutters
+            sx={{ border: 1, borderColor: 'divider', borderRadius: 3, mb: 1, '&:before': { display: 'none' }, '&.Mui-expanded': { borderColor: 'primary.main' } }}
+          >
+            <AccordionSummary expandIcon={<ChevronDown size={20} />} sx={{ px: 2.5, py: 0.5 }}>
+              <Typography sx={{ fontWeight: 600 }}>{item.titulo}</Typography>
             </AccordionSummary>
-            <AccordionDetails>
-              <Typography sx={{ mb: 1 }}>{item.texto}</Typography>
-              <Box component="ul" sx={{ m: 0, pl: 3 }}>
+            <AccordionDetails sx={{ px: 2.5, pb: 2.5 }}>
+              <Typography color="text.secondary" sx={{ lineHeight: 1.7, mb: 1.5 }}>{item.texto}</Typography>
+              <Stack component="ul" spacing={0.75} sx={{ m: 0, pl: 2.5 }}>
                 {item.dicas.map((dica) => (
-                  <Typography component="li" key={dica} sx={{ mb: 0.5 }}>
-                    {dica}
-                  </Typography>
+                  <Typography component="li" key={dica} variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>{dica}</Typography>
                 ))}
-              </Box>
+              </Stack>
             </AccordionDetails>
           </Accordion>
         ))}
-
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
           Conteúdo educativo. Não constitui recomendação de investimento.
         </Typography>
-      </Paper>
+      </Box>
 
-      <Paper sx={{ p: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800 }}>Videos Recomendados</Typography>
-        <Typography color="text.secondary" sx={{ mt: 1, mb: 3 }}>
-          Conteúdos e canais do YouTube sobre finanças.
-        </Typography>
+      <Box>
+        <Typography variant="h5" sx={{ fontWeight: 800 }}>Vídeos recomendados</Typography>
+        <Typography color="text.secondary" sx={{ mb: 2 }}>Conteúdos e canais do YouTube sobre finanças.</Typography>
 
-        <Box
-          sx={{
-            display: 'grid',
-            gap: 2,
-            gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-          }}
-        >
-          {videos.map((video) => (
-            <Card key={video.titulo} variant="outlined" sx={{ display: 'flex', flexDirection: 'column' }}>
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                  {video.titulo}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  {video.canal}
-                </Typography>
-                <Typography variant="body2">{video.descricao}</Typography>
-              </CardContent>
-              {video.url && (
-                <CardActions>
-                  <Button
-                    href={video.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    startIcon={<PlayArrowIcon />}
+        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' } }}>
+          {videos.map((video) => {
+            const imagem = miniatura(video.url);
+            return (
+              <Paper key={video.titulo} sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                {imagem && (
+                  <Box
+                    component="a" href={video.url} target="_blank" rel="noopener noreferrer" aria-label={`Assistir: ${video.titulo}`}
+                    sx={{ position: 'relative', display: 'block', aspectRatio: '16 / 9', bgcolor: 'action.hover', '&:hover .reproduzir': { transform: 'scale(1.08)' } }}
                   >
-                    Assistir no YouTube
-                  </Button>
-                </CardActions>
-              )}
-            </Card>
-          ))}
+                    <Box component="img" src={imagem} alt="" loading="lazy" sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    <Box className="reproduzir" sx={{ position: 'absolute', inset: 0, m: 'auto', width: 52, height: 52, borderRadius: '50%', bgcolor: 'rgba(16,18,26,.75)', backdropFilter: 'blur(4px)', display: 'grid', placeItems: 'center', color: 'common.white', transition: 'transform .15s ease' }}>
+                      <Play size={22} fill="currentColor" />
+                    </Box>
+                  </Box>
+                )}
+                <Stack spacing={1} sx={{ p: 2.5, flexGrow: 1 }}>
+                  <Box><Chip size="small" variant="outlined" label={video.canal} /></Box>
+                  <Typography sx={{ fontWeight: 700, lineHeight: 1.4 }}>{video.titulo}</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>{video.descricao}</Typography>
+                  {video.url && (
+                    <Box sx={{ pt: 1 }}>
+                      <Button href={video.url} target="_blank" rel="noopener noreferrer" endIcon={<ExternalLink size={16} />}>Assistir no YouTube</Button>
+                    </Box>
+                  )}
+                </Stack>
+              </Paper>
+            );
+          })}
         </Box>
-      </Paper>
-    </Box>
+      </Box>
+    </Stack>
   );
 }
