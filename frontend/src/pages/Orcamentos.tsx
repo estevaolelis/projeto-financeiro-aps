@@ -5,6 +5,7 @@ import {
   LinearProgress, MenuItem, Paper, Stack, TextField, Typography,
 } from '@mui/material';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
+import AlertasOrcamento from '../components/AlertasOrcamento';
 import { formatarMoeda } from '../utils/formatacao';
 import { listarCategorias } from '../services/categorias';
 import type { Categoria } from '../services/categorias';
@@ -116,6 +117,8 @@ export default function Orcamentos() {
       </Stack>
 
       {erro && <Alert severity="error">{erro}</Alert>}
+
+      <AlertasOrcamento orcamentos={orcamentos} />
 
       {orcamentos.length === 0 && !erro && (
         <Paper sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
