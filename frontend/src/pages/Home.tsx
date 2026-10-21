@@ -3,11 +3,11 @@ import { Link as LinkRouter } from 'react-router-dom';
 import {
   Alert, Box, Button, Chip, alpha, useTheme, Paper, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
-import { ArrowRight, Flame, PiggyBank, Plus, Receipt, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { ArrowDownLeft, ArrowRight, ArrowUpRight, Flame, PiggyBank, Plus, Receipt, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { Theme } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
-import { LineChart } from '@mui/x-charts/LineChart';
+import { LineChart, lineClasses } from '@mui/x-charts/LineChart';
 import { PieChart } from '@mui/x-charts/PieChart';
 import AlertasOrcamento from '../components/AlertasOrcamento';
 import ContadorMoeda from '../components/ContadorMoeda';
@@ -18,6 +18,7 @@ import { listarOrcamentos } from '../services/orcamentos';
 import type { Orcamento } from '../services/orcamentos';
 import { formatarCompacto, formatarData, formatarMoeda, hoje } from '../utils/formatacao';
 import { useModoCor } from '../contexto/modoCor';
+import { corDestaque } from '../tema';
 import {
   PRESETS, coresDasCategorias, despesasPorCategoria, noPeriodo, periodoAnterior, periodoDoPreset,
   serieTemporal, totais, variacao,
@@ -49,7 +50,8 @@ function Kpi({ titulo, icone, valor, cor, destaque, delta, deltaInvertido, rodap
       }),
     }}>
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', color: 'text.secondary', mb: 1 }}>
-        {icone}<Typography variant="body2">{titulo}</Typography>
+        <Box sx={{ width: 28, height: 28, borderRadius: '8px', display: 'grid', placeItems: 'center', bgcolor: 'action.hover', color: cor ?? corDestaque }}>{icone}</Box>
+        <Typography variant="body2">{titulo}</Typography>
       </Stack>
       <Typography variant="h4" sx={{ fontWeight: 800, color: cor, fontVariantNumeric: 'tabular-nums' }}>{valor}</Typography>
       <Stack direction="row" spacing={1} sx={{ mt: 1, alignItems: 'center', minHeight: 24 }}>
@@ -188,6 +190,8 @@ export default function Inicio() {
                   {painel.itens.length === 0 ? <SemDados texto="Sem movimentações neste período." /> : (
                     <BarChart
                       height={300}
+                      borderRadius={6}
+                      grid={{ horizontal: true }}
                       xAxis={[{ scaleType: 'band', data: painel.serie.rotulos }]}
                       yAxis={[{ width: 56, valueFormatter: formatarCompacto }]}
                       series={[
@@ -233,11 +237,19 @@ export default function Inicio() {
                     <LineChart
                       height={280}
                       hideLegend
+                      grid={{ horizontal: true }}
+                      sx={{ [`& .${lineClasses.area}`]: { fill: 'url(#gradiente-saldo)' } }}
                       xAxis={[{ scaleType: 'point', data: painel.serie.rotulos }]}
                       yAxis={[{ width: 56, valueFormatter: formatarCompacto }]}
                       series={[{ data: painel.serie.saldo, label: 'Saldo', color: tema.palette.primary.main, area: true, showMark: painel.serie.saldo.length <= 12, valueFormatter: (v) => formatarMoeda(v ?? 0) }]}
                     />
                   )}
+                  <svg width="0" height="0" aria-hidden style={{ position: 'absolute' }}>
+                    <linearGradient id="gradiente-saldo" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" stopColor={tema.palette.primary.main} stopOpacity={0.35} />
+                      <stop offset="1" stopColor={tema.palette.primary.main} stopOpacity={0} />
+                    </linearGradient>
+                  </svg>
                 </CartaoGrafico>
 
                 <CartaoGrafico titulo="Destaques do período">
@@ -286,6 +298,13 @@ export default function Inicio() {
             <Stack divider={<Box sx={{ borderBottom: 1, borderColor: 'divider' }} />}>
               {recentes.map((item) => (
                 <Stack key={item.id_movimentacao} direction="row" spacing={2} sx={{ py: 1.5, alignItems: 'center' }}>
+                  <Box sx={{
+                    width: 36, height: 36, flexShrink: 0, borderRadius: '10px', display: 'grid', placeItems: 'center',
+                    color: item.tipo === 'RECEITA' ? 'success.main' : 'error.main',
+                    bgcolor: (t: Theme) => alpha(item.tipo === 'RECEITA' ? t.palette.success.main : t.palette.error.main, 0.12),
+                  }}>
+                    {item.tipo === 'RECEITA' ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
+                  </Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography noWrap sx={{ fontWeight: 600 }}>{item.descricao}</Typography>
                     <Typography variant="body2" color="text.secondary">{formatarData(item.data_movimentacao)} · {item.nome_categoria}</Typography>
