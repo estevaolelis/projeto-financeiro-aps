@@ -157,6 +157,10 @@ export default function Movimentacoes() {
     }
   }
 
+  // O valor exibido no campo fechado deve ser só o nome (sem o botão de excluir do item).
+  const nomeCategoria = (valor: unknown) =>
+    valor === NOVA_CATEGORIA ? '+ Nova categoria…' : categorias.find((categoria) => categoria.id_categoria === valor)?.nome ?? '';
+
   const itemCategoria = (categoria: Categoria) => (
     <MenuItem key={categoria.id_categoria} value={categoria.id_categoria} sx={{ justifyContent: 'space-between', gap: 2 }}>
       {categoria.nome}
@@ -209,7 +213,7 @@ export default function Movimentacoes() {
             onChange={(evento) => atualizarFiltro({ tipo: evento.target.value as FiltrosMovimentacao['tipo'], id_categoria: '' })}>
             <MenuItem value="">Todos</MenuItem><MenuItem value="RECEITA">Receitas</MenuItem><MenuItem value="DESPESA">Despesas</MenuItem>
           </TextField>
-          <TextField select size="small" label="Categoria" value={filtros.id_categoria} onChange={(evento) => atualizarFiltro({ id_categoria: evento.target.value === '' ? '' : Number(evento.target.value) })}>
+          <TextField select size="small" label="Categoria" value={filtros.id_categoria} onChange={(evento) => atualizarFiltro({ id_categoria: evento.target.value === '' ? '' : Number(evento.target.value) })} slotProps={{ select: { renderValue: nomeCategoria } }}>
             <MenuItem value="">Todas</MenuItem>
             {categoriasFiltraveis.map(itemCategoria)}
           </TextField>
@@ -269,7 +273,7 @@ export default function Movimentacoes() {
                 <TextField required fullWidth label="Valor (R$)" value={formulario.valor} onChange={(evento) => atualizar('valor', evento.target.value)} slotProps={{ htmlInput: { inputMode: 'decimal', pattern: '\\d+([.,]\\d{1,2})?', title: 'Informe um valor maior que zero, ex.: 1500,50' } }} />
                 <TextField required fullWidth type="date" label="Data" value={formulario.data_movimentacao} onChange={(evento) => atualizar('data_movimentacao', evento.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
               </Stack>
-              <TextField required select label="Categoria" value={formulario.id_categoria} onChange={(evento) => atualizar('id_categoria', evento.target.value as number | typeof NOVA_CATEGORIA)}>
+              <TextField required select label="Categoria" value={formulario.id_categoria} onChange={(evento) => atualizar('id_categoria', evento.target.value as number | typeof NOVA_CATEGORIA)} slotProps={{ select: { renderValue: nomeCategoria } }}>
                 {categoriasDoTipo.map(itemCategoria)}
                 <MenuItem value={NOVA_CATEGORIA}>+ Nova categoria…</MenuItem>
               </TextField>
