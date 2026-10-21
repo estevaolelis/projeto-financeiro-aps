@@ -6,6 +6,7 @@ from app.database import obter_conexao
 from app.models.movimentacao_model import (
     RespostaCategoria,
     RespostaMovimentacao,
+    RespostaResumoMovimentacoes,
     SolicitacaoCategoria,
     SolicitacaoMovimentacao,
 )
@@ -136,29 +137,80 @@ def excluir_categoria(id_usuario: int, id_categoria: int) -> None:
             cursor.close()
 
 
-def listar_movimentacoes(
-    id_usuario: int,
-    tipo: str | None = None,
-    id_categoria: int | None = None,
-    data_inicio: date | None = None,
-    data_fim: date | None = None,
-) -> list[RespostaMovimentacao]:
+def _filtrar(
+    consulta: str,
+    parametros: list[object],
+    tipo: str | None,
+    id_categoria: int | None,
+    data_inicio: date | None,
+    data_fim: date | None,
+) -> str:
     filtros = (
         ("m.tipo = %s", tipo),
         ("m.id_categoria = %s", id_categoria),
         ("m.data_movimentacao >= %s", data_inicio),
         ("m.data_movimentacao <= %s", data_fim),
     )
-    consulta = _SELECT_MOVIMENTACAO
-    parametros: list[object] = [id_usuario]
     for condicao, valor in filtros:
         if valor is not None:
             consulta += f" AND {condicao}"
             parametros.append(valor)
+    return consulta
+
+
+def listar_movimentacoes(
+    id_usuario: int,
+    tipo: str | None = None,
+    id_categoria: int | None = None,
+    data_inicio: date | None = None,
+    data_fim: date | None = None,
+    limite: int | None = None,
+    cursor_data: date | None = None,
+    cursor_id: int | None = None,
+) -> list[RespostaMovimentacao]:
+    """Lista da mais recente para a mais antiga.
+
+    Com `limite`, a paginação é por cursor (data e id do último item já recebido):
+    o custo de cada página não cresce com a profundidade, ao contrário do OFFSET.
+    """
+    parametros: list[object] = [id_usuario]
+    consulta = _filtrar(_SELECT_MOVIMENTACAO, parametros, tipo, id_categoria, data_inicio, data_fim)
+    if cursor_data is not None and cursor_id is not None:
+        consulta += (
+            " AND (m.data_movimentacao < %s"
+            " OR (m.data_movimentacao = %s AND m.id_movimentacao < %s))"
+        )
+        parametros += [cursor_data, cursor_data, cursor_id]
     consulta += " ORDER BY m.data_movimentacao DESC, m.id_movimentacao DESC"
+    if limite is not None:
+        consulta += " LIMIT %s"
+        parametros.append(limite)
 
     registros = _consultar(consulta, tuple(parametros))
     return [RespostaMovimentacao(**registro) for registro in registros]
+
+
+def resumir_movimentacoes(
+    id_usuario: int,
+    tipo: str | None = None,
+    id_categoria: int | None = None,
+    data_inicio: date | None = None,
+    data_fim: date | None = None,
+) -> RespostaResumoMovimentacoes:
+    """Totais dos mesmos filtros da listagem, calculados no banco."""
+    parametros: list[object] = [id_usuario]
+    consulta = _filtrar(
+        "SELECT m.tipo, SUM(m.valor) AS total, COUNT(*) AS quantidade "
+        "FROM movimentacao m WHERE m.id_usuario = %s",
+        parametros, tipo, id_categoria, data_inicio, data_fim,
+    )
+    registros = _consultar(consulta + " GROUP BY m.tipo", tuple(parametros))
+    por_tipo = {registro["tipo"]: registro for registro in registros}
+    return RespostaResumoMovimentacoes(
+        receitas=por_tipo.get("RECEITA", {}).get("total", 0),
+        despesas=por_tipo.get("DESPESA", {}).get("total", 0),
+        quantidade=sum(registro["quantidade"] for registro in registros),
+    )
 
 
 def _buscar_movimentacao(id_usuario: int, id_movimentacao: int) -> RespostaMovimentacao:
