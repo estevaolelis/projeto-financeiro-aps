@@ -10,6 +10,7 @@ import PaginaVideos from './pages/Videos';
 import PerguntasFrequentes from './pages/FAQ';
 import Acesso from './pages/Acesso';
 import Movimentacoes from './pages/Movimentacoes';
+import Orcamentos from './pages/Orcamentos';
 import { estaAutenticado } from './services/sessao';
 
 function RotaProtegida({ children: conteudo }: { children: ReactNode }) {
@@ -25,6 +26,7 @@ export default function Aplicacao() {
           <Routes>
             <Route path="/" element={<RotaProtegida><Inicio /></RotaProtegida>} />
             <Route path="/movimentacoes" element={<RotaProtegida><Movimentacoes /></RotaProtegida>} />
+            <Route path="/orcamentos" element={<RotaProtegida><Orcamentos /></RotaProtegida>} />
             <Route path="/calculadora" element={<RotaProtegida><Calculadora /></RotaProtegida>} />
             <Route path="/perfil" element={<RotaProtegida><PerfilInvestidor /></RotaProtegida>} />
             <Route path="/videos" element={<RotaProtegida><PaginaVideos /></RotaProtegida>} />
