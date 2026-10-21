@@ -8,8 +8,13 @@ from app.controllers.movimentacao_controller import (
     excluir_movimentacao,
     listar_categorias,
     listar_movimentacoes,
+    resumir_movimentacoes,
 )
-from app.models.movimentacao_model import RespostaCategoria, RespostaMovimentacao
+from app.models.movimentacao_model import (
+    RespostaCategoria,
+    RespostaMovimentacao,
+    RespostaResumoMovimentacoes,
+)
 
 roteador = APIRouter(prefix="/api", tags=["movimentacoes"])
 
@@ -37,6 +42,12 @@ roteador.add_api_route(
     listar_movimentacoes,
     methods=["GET"],
     response_model=list[RespostaMovimentacao],
+)
+roteador.add_api_route(
+    "/movimentacoes/resumo",
+    resumir_movimentacoes,
+    methods=["GET"],
+    response_model=RespostaResumoMovimentacoes,
 )
 roteador.add_api_route(
     "/movimentacoes",

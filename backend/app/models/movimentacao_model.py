@@ -32,3 +32,9 @@ class SolicitacaoMovimentacao(BaseModel):
 class RespostaMovimentacao(SolicitacaoMovimentacao):
     id_movimentacao: int
     nome_categoria: str
+
+
+class RespostaResumoMovimentacoes(BaseModel):
+    receitas: Decimal
+    despesas: Decimal
+    quantidade: int

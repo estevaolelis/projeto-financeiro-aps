@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import {
-  Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton,
+  Alert, Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton,
   MenuItem, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography,
 } from '@mui/material';
 import { Pencil, Plus, Tags, Trash2 } from 'lucide-react';
@@ -10,13 +10,17 @@ import { formatarData, formatarMoeda, hoje } from '../utils/formatacao';
 import { cadastrarCategoria, excluirCategoria, listarCategorias } from '../services/categorias';
 import type { Categoria, TipoMovimentacao } from '../services/categorias';
 import {
-  cadastrarMovimentacao, editarMovimentacao, excluirMovimentacao, listarMovimentacoes,
+  cadastrarMovimentacao, editarMovimentacao, excluirMovimentacao, listarMovimentacoes, resumirMovimentacoes,
 } from '../services/movimentacoes';
-import type { DadosMovimentacao, FiltrosMovimentacao, Movimentacao, NaturezaMovimentacao } from '../services/movimentacoes';
+import type { DadosMovimentacao, FiltrosMovimentacao, Movimentacao, NaturezaMovimentacao, ResumoMovimentacoes } from '../services/movimentacoes';
 
 const FILTROS_VAZIOS: FiltrosMovimentacao = { tipo: '', id_categoria: '', data_inicio: '', data_fim: '' };
 
 const NOVA_CATEGORIA = 'nova';
+
+// Cada página traz 30 itens; pedimos um a mais só para saber se existe uma próxima.
+const TAMANHO_PAGINA = 30;
+const RESUMO_VAZIO: ResumoMovimentacoes = { receitas: '0', despesas: '0', quantidade: 0 };
 
 const formularioVazio = (tipo: TipoMovimentacao = 'DESPESA') => ({
   tipo,
@@ -42,21 +46,73 @@ export default function Movimentacoes() {
   const [formulario, definirFormulario] = useState(formularioVazio());
   const [salvando, definirSalvando] = useState(false);
   const [exclusao, definirExclusao] = useState<Movimentacao | null>(null);
+  const [resumo, definirResumo] = useState<ResumoMovimentacoes>(RESUMO_VAZIO);
+  const [temMais, definirTemMais] = useState(false);
+  const [carregandoMais, definirCarregandoMais] = useState(false);
+  const [erroMais, definirErroMais] = useState(false);
+  const geracao = useRef(0);
+  const buscandoMais = useRef(false);
+  const sentinela = useRef<HTMLDivElement | null>(null);
   const [categoriasAbertas, definirCategoriasAbertas] = useState(false);
   const [categoriaExclusao, definirCategoriaExclusao] = useState<Categoria | null>(null);
 
+  // Recarrega do início (filtros novos ou dado alterado). `geracao` descarta respostas de buscas já superadas.
   const carregar = useCallback(async () => {
+    const minhaGeracao = ++geracao.current;
     try {
-      const [listaMovimentacoes, listaCategorias] = await Promise.all([listarMovimentacoes(filtros), listarCategorias()]);
-      definirMovimentacoes(listaMovimentacoes);
+      const [pagina, novoResumo, listaCategorias] = await Promise.all([
+        listarMovimentacoes(filtros, { limite: TAMANHO_PAGINA + 1 }),
+        resumirMovimentacoes(filtros),
+        listarCategorias(),
+      ]);
+      if (minhaGeracao !== geracao.current) return;
+      definirMovimentacoes(pagina.slice(0, TAMANHO_PAGINA));
+      definirTemMais(pagina.length > TAMANHO_PAGINA);
+      definirResumo(novoResumo);
       definirCategorias(listaCategorias);
+      definirErroMais(false);
       definirErro('');
     } catch (erroRequisicao) {
+      if (minhaGeracao !== geracao.current) return;
       definirErro(erroRequisicao instanceof Error ? erroRequisicao.message : 'Não foi possível carregar os dados.');
     }
   }, [filtros]);
 
+  const carregarMais = useCallback(async () => {
+    const ultimo = movimentacoes[movimentacoes.length - 1];
+    if (!ultimo || !temMais || buscandoMais.current) return;
+    const minhaGeracao = geracao.current;
+    buscandoMais.current = true;
+    definirCarregandoMais(true);
+    try {
+      const pagina = await listarMovimentacoes(filtros, {
+        limite: TAMANHO_PAGINA + 1,
+        cursor: { data: ultimo.data_movimentacao, id: ultimo.id_movimentacao },
+      });
+      if (minhaGeracao !== geracao.current) return;
+      definirMovimentacoes((atuais) => [...atuais, ...pagina.slice(0, TAMANHO_PAGINA)]);
+      definirTemMais(pagina.length > TAMANHO_PAGINA);
+    } catch {
+      if (minhaGeracao === geracao.current) definirErroMais(true);
+    } finally {
+      buscandoMais.current = false;
+      definirCarregandoMais(false);
+    }
+  }, [filtros, movimentacoes, temMais]);
+
   useEffect(() => { void carregar(); }, [carregar]);
+
+  // Carrega a próxima página quando o fim da lista se aproxima da tela. O observador é recriado a cada
+  // página recebida, então, se o fim ainda estiver visível (tela alta), ele dispara de novo sozinho.
+  useEffect(() => {
+    const alvo = sentinela.current;
+    if (!alvo || !temMais || erroMais) return undefined;
+    const observador = new IntersectionObserver((entradas) => {
+      if (entradas.some((entrada) => entrada.isIntersecting)) void carregarMais();
+    }, { rootMargin: '400px 0px' });
+    observador.observe(alvo);
+    return () => observador.disconnect();
+  }, [carregarMais, temMais, erroMais]);
 
   // Vindo do botão "Nova movimentação" da Home: abre o modal e limpa o sinal para não reabrir ao atualizar a página.
   useEffect(() => {
@@ -69,13 +125,11 @@ export default function Movimentacoes() {
     }
   }, [localizacao, navegar]);
 
-  const totais = useMemo(() => {
-    const somar = (tipo: TipoMovimentacao) =>
-      movimentacoes.filter((item) => item.tipo === tipo).reduce((soma, item) => soma + Number(item.valor), 0);
-    const receitas = somar('RECEITA');
-    const despesas = somar('DESPESA');
-    return { receitas, despesas, saldo: receitas - despesas };
-  }, [movimentacoes]);
+  const totais = {
+    receitas: Number(resumo.receitas),
+    despesas: Number(resumo.despesas),
+    saldo: Number(resumo.receitas) - Number(resumo.despesas),
+  };
   const categoriasDoTipo = categorias.filter((categoria) => categoria.tipo === formulario.tipo);
   const categoriasFiltraveis = categorias.filter((categoria) => !filtros.tipo || categoria.tipo === filtros.tipo);
   const temFiltro = Object.values(filtros).some((valor) => valor !== '');
@@ -253,6 +307,16 @@ export default function Movimentacoes() {
           </TableBody>
         </Table>
       </Paper>
+
+      <Box ref={sentinela} sx={{ minHeight: 48, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        {carregandoMais && <CircularProgress size={24} aria-label="Carregando mais movimentações" />}
+        {erroMais && <Button onClick={() => { definirErroMais(false); void carregarMais(); }}>Não foi possível carregar mais. Tentar novamente</Button>}
+        {!temMais && movimentacoes.length > 0 && (
+          <Typography variant="body2" color="text.secondary">
+            {resumo.quantidade === 1 ? '1 movimentação' : `${resumo.quantidade} movimentações`} · fim da lista
+          </Typography>
+        )}
+      </Box>
 
       <Dialog open={dialogoAberto} onClose={() => definirDialogoAberto(false)} fullWidth maxWidth="sm">
         <Box component="form" onSubmit={salvar}>
