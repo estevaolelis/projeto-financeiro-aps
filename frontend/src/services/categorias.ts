@@ -18,3 +18,7 @@ export function cadastrarCategoria(nome: string, tipo: TipoMovimentacao) {
 		body: JSON.stringify({ nome, tipo }),
 	});
 }
+
+export function excluirCategoria(id: number) {
+	return requisitarAutenticado<void>(`/api/categorias/${id}`, { method: 'DELETE' });
+}

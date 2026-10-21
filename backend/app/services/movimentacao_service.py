@@ -19,6 +19,10 @@ class ErroCategoriaJaCadastrada(Exception):
     """Indica que o usuário já possui uma categoria com este nome e tipo."""
 
 
+class ErroCategoriaNaoEncontrada(Exception):
+    """Indica que a categoria não existe ou já foi excluída para o usuário informado."""
+
+
 class ErroMovimentacaoNaoEncontrada(Exception):
     """Indica que a movimentação não existe para o usuário informado."""
 
@@ -94,10 +98,42 @@ def cadastrar_categoria(id_usuario: int, dados: SolicitacaoCategoria) -> Respost
             (id_usuario, nome, dados.tipo),
         )
     except IntegrityError as erro:
-        if erro.errno == 1062:
+        if erro.errno != 1062:
+            raise
+        # Nome já usado: só é erro se a categoria estiver ativa; se foi excluída, reativa.
+        existente = _consultar(
+            "SELECT id_categoria, ativo FROM categoria "
+            "WHERE id_usuario = %s AND nome = %s AND tipo = %s",
+            (id_usuario, nome, dados.tipo),
+        )
+        if not existente or existente[0]["ativo"]:
             raise ErroCategoriaJaCadastrada from erro
-        raise
+        id_categoria = existente[0]["id_categoria"]
+        _executar(
+            "UPDATE categoria SET ativo = TRUE WHERE id_categoria = %s", (id_categoria,)
+        )
     return RespostaCategoria(id_categoria=id_categoria, nome=nome, tipo=dados.tipo)
+
+
+def excluir_categoria(id_usuario: int, id_categoria: int) -> None:
+    """Exclusão lógica: preserva as movimentações antigas; remove os orçamentos da categoria."""
+    with obter_conexao() as conexao:
+        cursor = conexao.cursor()
+        try:
+            cursor.execute(
+                "UPDATE categoria SET ativo = FALSE "
+                "WHERE id_usuario = %s AND id_categoria = %s AND ativo = TRUE",
+                (id_usuario, id_categoria),
+            )
+            if cursor.rowcount == 0:
+                raise ErroCategoriaNaoEncontrada
+            cursor.execute(
+                "DELETE FROM orcamento WHERE id_usuario = %s AND id_categoria = %s",
+                (id_usuario, id_categoria),
+            )
+            conexao.commit()
+        finally:
+            cursor.close()
 
 
 def listar_movimentacoes(
