@@ -4,6 +4,7 @@ from app.controllers.movimentacao_controller import (
     cadastrar_categoria,
     cadastrar_movimentacao,
     editar_movimentacao,
+    excluir_categoria,
     excluir_movimentacao,
     listar_categorias,
     listar_movimentacoes,
@@ -24,6 +25,12 @@ roteador.add_api_route(
     methods=["POST"],
     response_model=RespostaCategoria,
     status_code=status.HTTP_201_CREATED,
+)
+roteador.add_api_route(
+    "/categorias/{id_categoria}",
+    excluir_categoria,
+    methods=["DELETE"],
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 roteador.add_api_route(
     "/movimentacoes",

@@ -15,6 +15,7 @@ from app.services import movimentacao_service as servico
 from app.services.movimentacao_service import (
     ErroCategoriaInvalida,
     ErroCategoriaJaCadastrada,
+    ErroCategoriaNaoEncontrada,
     ErroMovimentacaoNaoEncontrada,
 )
 
@@ -44,6 +45,19 @@ def cadastrar_categoria(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Esta categoria já existe",
+        ) from erro
+
+
+def excluir_categoria(
+    id_categoria: int,
+    usuario: RespostaUsuario = Depends(obter_usuario_atual),
+) -> None:
+    try:
+        servico.excluir_categoria(usuario.id_usuario, id_categoria)
+    except ErroCategoriaNaoEncontrada as erro:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Categoria não encontrada",
         ) from erro
 
 

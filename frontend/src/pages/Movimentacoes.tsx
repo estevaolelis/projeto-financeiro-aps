@@ -4,10 +4,10 @@ import {
   Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton,
   MenuItem, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography,
 } from '@mui/material';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Tags, Trash2 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { formatarData, formatarMoeda, hoje } from '../utils/formatacao';
-import { cadastrarCategoria, listarCategorias } from '../services/categorias';
+import { cadastrarCategoria, excluirCategoria, listarCategorias } from '../services/categorias';
 import type { Categoria, TipoMovimentacao } from '../services/categorias';
 import {
   cadastrarMovimentacao, editarMovimentacao, excluirMovimentacao, listarMovimentacoes,
@@ -42,6 +42,8 @@ export default function Movimentacoes() {
   const [formulario, definirFormulario] = useState(formularioVazio());
   const [salvando, definirSalvando] = useState(false);
   const [exclusao, definirExclusao] = useState<Movimentacao | null>(null);
+  const [categoriasAbertas, definirCategoriasAbertas] = useState(false);
+  const [categoriaExclusao, definirCategoriaExclusao] = useState<Categoria | null>(null);
 
   const carregar = useCallback(async () => {
     try {
@@ -155,6 +157,19 @@ export default function Movimentacoes() {
     }
   }
 
+  async function confirmarExclusaoCategoria() {
+    if (!categoriaExclusao) return;
+    try {
+      await excluirCategoria(categoriaExclusao.id_categoria);
+      if (filtros.id_categoria === categoriaExclusao.id_categoria) atualizarFiltro({ id_categoria: '' });
+      definirCategoriaExclusao(null);
+      await carregar();
+    } catch (erroRequisicao) {
+      definirCategoriaExclusao(null);
+      definirErro(erroRequisicao instanceof Error ? erroRequisicao.message : 'Não foi possível excluir a categoria.');
+    }
+  }
+
   return (
     <Stack spacing={3}>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' } }}>
@@ -162,7 +177,10 @@ export default function Movimentacoes() {
           <Typography variant="h4" sx={{ fontWeight: 800 }}>Receitas e despesas</Typography>
           <Typography color="text.secondary">Cadastre e acompanhe suas movimentações financeiras.</Typography>
         </Box>
-        <Button variant="contained" startIcon={<Plus size={18} />} onClick={abrirNova}>Nova movimentação</Button>
+        <Stack direction="row" spacing={1}>
+          <Button color="inherit" startIcon={<Tags size={18} />} onClick={() => definirCategoriasAbertas(true)}>Categorias</Button>
+          <Button variant="contained" startIcon={<Plus size={18} />} onClick={abrirNova}>Nova movimentação</Button>
+        </Stack>
       </Stack>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
@@ -255,6 +273,34 @@ export default function Movimentacoes() {
             <Button type="submit" variant="contained" disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar'}</Button>
           </DialogActions>
         </Box>
+      </Dialog>
+
+      <Dialog open={categoriasAbertas} onClose={() => definirCategoriasAbertas(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Categorias</DialogTitle>
+        <DialogContent>
+          {(['DESPESA', 'RECEITA'] as const).map((tipo) => (
+            <Box key={tipo} sx={{ mb: 1 }}>
+              <Typography variant="subtitle2" color="text.secondary">{tipo === 'DESPESA' ? 'Despesas' : 'Receitas'}</Typography>
+              {categorias.filter((categoria) => categoria.tipo === tipo).map((categoria) => (
+                <Stack key={categoria.id_categoria} direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography>{categoria.nome}</Typography>
+                  <IconButton size="small" aria-label={`Excluir categoria ${categoria.nome}`} onClick={() => definirCategoriaExclusao(categoria)}><Trash2 size={17} /></IconButton>
+                </Stack>
+              ))}
+              {categorias.every((categoria) => categoria.tipo !== tipo) && <Typography variant="body2" color="text.secondary">Nenhuma categoria.</Typography>}
+            </Box>
+          ))}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}><Button onClick={() => definirCategoriasAbertas(false)} color="inherit">Fechar</Button></DialogActions>
+      </Dialog>
+
+      <Dialog open={categoriaExclusao !== null} onClose={() => definirCategoriaExclusao(null)}>
+        <DialogTitle>Excluir categoria</DialogTitle>
+        <DialogContent><Typography>Deseja excluir a categoria “{categoriaExclusao?.nome}”? As movimentações já registradas continuam no histórico, mas os orçamentos desta categoria serão removidos.</Typography></DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => definirCategoriaExclusao(null)} color="inherit">Cancelar</Button>
+          <Button onClick={confirmarExclusaoCategoria} color="error" variant="contained">Excluir</Button>
+        </DialogActions>
       </Dialog>
 
       <Dialog open={exclusao !== null} onClose={() => definirExclusao(null)}>
