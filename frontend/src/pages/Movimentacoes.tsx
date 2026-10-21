@@ -157,6 +157,18 @@ export default function Movimentacoes() {
     }
   }
 
+  const itemCategoria = (categoria: Categoria) => (
+    <MenuItem key={categoria.id_categoria} value={categoria.id_categoria} sx={{ justifyContent: 'space-between', gap: 2 }}>
+      {categoria.nome}
+      <IconButton
+        size="small"
+        aria-label={`Excluir categoria ${categoria.nome}`}
+        onMouseDown={(evento) => evento.stopPropagation()}
+        onClick={(evento) => { evento.stopPropagation(); definirCategoriaExclusao(categoria); }}
+      ><Trash2 size={16} /></IconButton>
+    </MenuItem>
+  );
+
   async function confirmarExclusaoCategoria() {
     if (!categoriaExclusao) return;
     try {
@@ -199,7 +211,7 @@ export default function Movimentacoes() {
           </TextField>
           <TextField select size="small" label="Categoria" value={filtros.id_categoria} onChange={(evento) => atualizarFiltro({ id_categoria: evento.target.value === '' ? '' : Number(evento.target.value) })}>
             <MenuItem value="">Todas</MenuItem>
-            {categoriasFiltraveis.map((categoria) => <MenuItem key={categoria.id_categoria} value={categoria.id_categoria}>{categoria.nome}</MenuItem>)}
+            {categoriasFiltraveis.map(itemCategoria)}
           </TextField>
           <TextField size="small" type="date" label="De" value={filtros.data_inicio} onChange={(evento) => atualizarFiltro({ data_inicio: evento.target.value })} slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: filtros.data_fim || undefined } }} />
           <TextField size="small" type="date" label="Até" value={filtros.data_fim} onChange={(evento) => atualizarFiltro({ data_fim: evento.target.value })} slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: filtros.data_inicio || undefined } }} />
@@ -258,7 +270,7 @@ export default function Movimentacoes() {
                 <TextField required fullWidth type="date" label="Data" value={formulario.data_movimentacao} onChange={(evento) => atualizar('data_movimentacao', evento.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
               </Stack>
               <TextField required select label="Categoria" value={formulario.id_categoria} onChange={(evento) => atualizar('id_categoria', evento.target.value as number | typeof NOVA_CATEGORIA)}>
-                {categoriasDoTipo.map((categoria) => <MenuItem key={categoria.id_categoria} value={categoria.id_categoria}>{categoria.nome}</MenuItem>)}
+                {categoriasDoTipo.map(itemCategoria)}
                 <MenuItem value={NOVA_CATEGORIA}>+ Nova categoria…</MenuItem>
               </TextField>
               {formulario.id_categoria === NOVA_CATEGORIA && (
