@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  AppBar, Box, Button, Container, Drawer, IconButton, List, ListItem,
-  ListItemButton, ListItemIcon, ListItemText, Stack, Toolbar, Typography,
+  alpha, AppBar, Box, Button, Container, Drawer, IconButton, List, ListItem,
+  ListItemButton, ListItemIcon, ListItemText, Stack, Toolbar, Tooltip, Typography,
 } from '@mui/material';
-import { ArrowLeftRight, Calculator, PiggyBank, HelpCircle, Menu, TrendingUp, UserCheck, Video, X } from 'lucide-react';
+import { ArrowLeftRight, Calculator, PiggyBank, HelpCircle, Menu, Moon, Sun, TrendingUp, UserCheck, Video, X } from 'lucide-react';
 import { limparSessao, obterUsuarioArmazenado } from '../services/sessao';
+import { useModoCor } from '../contexto/modoCor';
+import { corDestaque } from '../tema';
 
 const itensNavegacao = [
   { nome: 'Início', caminho: '/', icone: TrendingUp },
@@ -21,23 +23,29 @@ export default function BarraNavegacao() {
   const navegar = useNavigate();
   const [menuMovelAberto, definirMenuMovelAberto] = useState(false);
   const usuario = obterUsuarioArmazenado();
+  const { modo, alternar } = useModoCor();
   const fecharMenuMovel = () => definirMenuMovelAberto(false);
   const sair = () => { limparSessao(); navegar('/acesso'); };
 
   return (
-    <AppBar position="sticky" color="transparent" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'rgba(16,18,26,.72)', backdropFilter: 'blur(16px) saturate(140%)' }}>
+    <AppBar position="sticky" color="transparent" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: (tema) => alpha(tema.palette.background.default, 0.72), backdropFilter: 'blur(16px) saturate(140%)' }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters sx={{ minHeight: 72, gap: 3 }}>
           <Typography component={NavLink} to="/" variant="h6" sx={{ color: 'text.primary', textDecoration: 'none', fontWeight: 800, letterSpacing: '-0.02em', mr: 'auto' }}>
-            Finanças<span style={{ color: '#7c83ff' }}>.</span>
+            Finanças<Box component="span" sx={{ color: 'primary.main' }}>.</Box>
           </Typography>
           <Stack direction="row" spacing={0.5} sx={{ display: { xs: 'none', md: 'flex' } }}>
             {itensNavegacao.map(({ nome, caminho, icone: Icone }) => (
-              <Button key={caminho} component={NavLink} to={caminho} startIcon={<Icone size={17} />} sx={{ color: 'text.secondary', borderRadius: 999, px: 1.75, '&:hover': { color: 'text.primary', bgcolor: 'rgba(255,255,255,.05)' }, '&.active': { color: '#aab0ff', bgcolor: 'rgba(124,131,255,.16)' } }}>
+              <Button key={caminho} component={NavLink} to={caminho} startIcon={<Icone size={17} />} sx={{ color: 'text.secondary', borderRadius: 999, px: 1.75, '&:hover': { color: 'text.primary', bgcolor: 'action.hover' }, '&.active': { color: corDestaque, bgcolor: (tema) => alpha(tema.palette.primary.main, 0.16) } }}>
                 {nome}
               </Button>
             ))}
           </Stack>
+          <Tooltip title={modo === 'dark' ? 'Mudar para o modo claro' : 'Mudar para o modo escuro'}>
+            <IconButton onClick={alternar} color="inherit" aria-label={modo === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}>
+              {modo === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </IconButton>
+          </Tooltip>
           {usuario ? <Button onClick={sair} color="inherit">Sair</Button> : <Button component={NavLink} to="/acesso" variant="contained" startIcon={<UserCheck size={17} />}>Entrar</Button>}
           <IconButton onClick={() => definirMenuMovelAberto(true)} sx={{ display: { xs: 'inline-flex', md: 'none' } }} aria-label="Abrir menu">
             <Menu />

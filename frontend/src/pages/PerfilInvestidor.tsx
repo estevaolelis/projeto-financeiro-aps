@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   Alert, Box, Button, Chip, FormControl, FormControlLabel, LinearProgress, Paper, Radio, RadioGroup, Stack, Typography,
+  alpha,
 } from '@mui/material';
 import { ArrowLeft, ArrowRight, RotateCcw, UserCheck } from 'lucide-react';
 import { PERFIS, PERGUNTAS, classificar } from '../data/perfilInvestidor';
@@ -130,7 +131,7 @@ export default function PerfilInvestidor() {
                     sx={{
                       m: 0, px: 1.5, py: 0.5, border: 1, borderRadius: 3, transition: 'border-color .15s, background-color .15s',
                       borderColor: respostaAtual === opcao.pontos ? 'primary.main' : 'divider',
-                      bgcolor: respostaAtual === opcao.pontos ? 'rgba(124,131,255,.12)' : 'transparent',
+                      bgcolor: (tema) => (respostaAtual === opcao.pontos ? alpha(tema.palette.primary.main, 0.12) : 'transparent'),
                       '&:hover': { borderColor: 'primary.main' },
                     }}
                   />

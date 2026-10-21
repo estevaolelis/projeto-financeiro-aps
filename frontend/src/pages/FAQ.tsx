@@ -55,7 +55,7 @@ export default function PerguntasFrequentes() {
             >
               <AccordionSummary expandIcon={<ChevronDown size={20} />} sx={{ px: 2.5, py: 0.5 }}>
                 <Stack spacing={0.25}>
-                  <Typography variant="caption" color="primary.light" sx={{ fontWeight: 700 }}>{duvida.categoria}</Typography>
+                  <Typography variant="caption" color="primary.main" sx={{ fontWeight: 700 }}>{duvida.categoria}</Typography>
                   <Typography sx={{ fontWeight: 600 }}>{duvida.pergunta}</Typography>
                 </Stack>
               </AccordionSummary>

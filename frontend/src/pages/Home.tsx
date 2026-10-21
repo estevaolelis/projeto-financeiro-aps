@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link as LinkRouter } from 'react-router-dom';
 import {
-  Alert, Box, Button, Chip, Paper, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography,
+  Alert, Box, Button, Chip, alpha, useTheme, Paper, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import { ArrowRight, Flame, PiggyBank, Plus, Receipt, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import type { ReactNode } from 'react';
+import type { Theme } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { PieChart } from '@mui/x-charts/PieChart';
@@ -15,7 +16,8 @@ import { listarMovimentacoes } from '../services/movimentacoes';
 import type { Movimentacao } from '../services/movimentacoes';
 import { listarOrcamentos } from '../services/orcamentos';
 import type { Orcamento } from '../services/orcamentos';
-import { formatarData, formatarMoeda, hoje } from '../utils/formatacao';
+import { formatarCompacto, formatarData, formatarMoeda, hoje } from '../utils/formatacao';
+import { useModoCor } from '../contexto/modoCor';
 import {
   PRESETS, coresDasCategorias, despesasPorCategoria, noPeriodo, periodoAnterior, periodoDoPreset,
   serieTemporal, totais, variacao,
@@ -23,9 +25,6 @@ import {
 import type { Periodo, PresetPeriodo } from '../utils/dashboard';
 
 const FILTROS_VAZIOS = { tipo: '', id_categoria: '', data_inicio: '', data_fim: '' } as const;
-const COR_RECEITA = '#2e7d32';
-const COR_DESPESA = '#d32f2f';
-const COR_SALDO = '#7c83ff';
 
 type PropsKpi = {
   titulo: string;
@@ -43,7 +42,11 @@ function Kpi({ titulo, icone, valor, cor, destaque, delta, deltaInvertido, rodap
   return (
     <Paper sx={{
       p: 2.5, position: 'relative', overflow: 'hidden',
-      ...(destaque && { background: 'linear-gradient(135deg, rgba(124,131,255,.28), rgba(25,28,39,1) 70%)', border: 1, borderColor: 'rgba(124,131,255,.45)' }),
+      ...(destaque && {
+        background: (tema: Theme) => `linear-gradient(135deg, ${alpha(tema.palette.primary.main, 0.26)}, ${tema.palette.background.paper} 70%)`,
+        border: 1,
+        borderColor: (tema: Theme) => alpha(tema.palette.primary.main, 0.45),
+      }),
     }}>
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', color: 'text.secondary', mb: 1 }}>
         {icone}<Typography variant="body2">{titulo}</Typography>
@@ -77,6 +80,8 @@ const SemDados = ({ texto }: { texto: string }) => (
 
 export default function Inicio() {
   const usuario = obterUsuarioArmazenado();
+  const tema = useTheme();
+  const { modo } = useModoCor();
   const [movimentacoes, definirMovimentacoes] = useState<Movimentacao[]>([]);
   const [carregado, definirCarregado] = useState(false);
   const [erro, definirErro] = useState('');
@@ -110,14 +115,14 @@ export default function Inicio() {
     const itens = noPeriodo(movimentacoes, periodo);
     const atual = totais(itens);
     const anterior = totais(noPeriodo(movimentacoes, periodoAnterior(periodo)));
-    const cores = coresDasCategorias(movimentacoes);
+    const cores = coresDasCategorias(movimentacoes, modo);
     const categorias = despesasPorCategoria(itens, cores);
     const serie = serieTemporal(movimentacoes, periodo);
     const despesasItens = itens.filter((item) => item.tipo === 'DESPESA');
     const maiorDespesa = despesasItens.reduce<Movimentacao | null>((maior, item) => (!maior || Number(item.valor) > Number(maior.valor) ? item : maior), null);
     const dias = Math.max(1, Math.round((new Date(periodo.fim).getTime() - new Date(periodo.inicio).getTime()) / 86_400_000) + 1);
     return { itens, atual, anterior, categorias, serie, maiorDespesa, mediaDiaria: atual.despesas / dias };
-  }, [movimentacoes, periodo, periodoValido]);
+  }, [movimentacoes, periodo, periodoValido, modo]);
 
   const saldoAtual = useMemo(
     () => movimentacoes.filter((item) => item.data_movimentacao <= hoje()).reduce((soma, item) => soma + (item.tipo === 'RECEITA' ? 1 : -1) * Number(item.valor), 0),
@@ -145,7 +150,7 @@ export default function Inicio() {
 
       {semNenhumDado ? (
         <Paper sx={{ p: 6, textAlign: 'center' }}>
-          <Wallet size={44} color={COR_SALDO} />
+          <Box sx={{ color: 'primary.main', display: 'inline-flex' }}><Wallet size={44} /></Box>
           <Typography variant="h5" sx={{ fontWeight: 800, mt: 2 }}>Seu painel começa aqui</Typography>
           <Typography color="text.secondary" sx={{ mt: 1, mb: 3 }}>Cadastre sua primeira receita ou despesa para ver saldo, gráficos e comparativos.</Typography>
           <Button component={LinkRouter} to="/movimentacoes" state={{ abrirNova: true }} variant="contained" startIcon={<Plus size={18} />}>Cadastrar movimentação</Button>
@@ -170,9 +175,9 @@ export default function Inicio() {
           {painel && (
             <>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 2 }}>
-                <Kpi destaque titulo="Saldo atual" icone={<Wallet size={16} />} valor={<ContadorMoeda valor={saldoAtual} />} cor={saldoAtual < 0 ? COR_DESPESA : undefined} rodape="todas as movimentações até hoje" />
-                <Kpi titulo="Receitas do período" icone={<TrendingUp size={16} />} valor={<ContadorMoeda valor={painel.atual.receitas} />} cor="#66bb6a" delta={variacao(painel.atual.receitas, painel.anterior.receitas)} />
-                <Kpi titulo="Despesas do período" icone={<TrendingDown size={16} />} valor={<ContadorMoeda valor={painel.atual.despesas} />} cor="#ef5350" delta={variacao(painel.atual.despesas, painel.anterior.despesas)} deltaInvertido />
+                <Kpi destaque titulo="Saldo atual" icone={<Wallet size={16} />} valor={<ContadorMoeda valor={saldoAtual} />} cor={saldoAtual < 0 ? 'error.main' : undefined} rodape="todas as movimentações até hoje" />
+                <Kpi titulo="Receitas do período" icone={<TrendingUp size={16} />} valor={<ContadorMoeda valor={painel.atual.receitas} />} cor="success.main" delta={variacao(painel.atual.receitas, painel.anterior.receitas)} />
+                <Kpi titulo="Despesas do período" icone={<TrendingDown size={16} />} valor={<ContadorMoeda valor={painel.atual.despesas} />} cor="error.main" delta={variacao(painel.atual.despesas, painel.anterior.despesas)} deltaInvertido />
                 <Kpi titulo="Taxa de economia" icone={<PiggyBank size={16} />}
                   valor={painel.atual.taxaEconomia == null ? '—' : `${painel.atual.taxaEconomia.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`}
                   rodape={painel.atual.taxaEconomia == null ? 'sem receitas no período' : `${formatarMoeda(painel.atual.saldo)} guardados no período`} />
@@ -184,9 +189,10 @@ export default function Inicio() {
                     <BarChart
                       height={300}
                       xAxis={[{ scaleType: 'band', data: painel.serie.rotulos }]}
+                      yAxis={[{ width: 56, valueFormatter: formatarCompacto }]}
                       series={[
-                        { data: painel.serie.receitas, label: 'Receitas', color: COR_RECEITA, valueFormatter: (v) => formatarMoeda(v ?? 0) },
-                        { data: painel.serie.despesas, label: 'Despesas', color: COR_DESPESA, valueFormatter: (v) => formatarMoeda(v ?? 0) },
+                        { data: painel.serie.receitas, label: 'Receitas', color: tema.palette.success.main, valueFormatter: (v) => formatarMoeda(v ?? 0) },
+                        { data: painel.serie.despesas, label: 'Despesas', color: tema.palette.error.main, valueFormatter: (v) => formatarMoeda(v ?? 0) },
                       ]}
                     />
                   )}
@@ -228,7 +234,8 @@ export default function Inicio() {
                       height={280}
                       hideLegend
                       xAxis={[{ scaleType: 'point', data: painel.serie.rotulos }]}
-                      series={[{ data: painel.serie.saldo, label: 'Saldo', color: COR_SALDO, area: true, showMark: painel.serie.saldo.length <= 12, valueFormatter: (v) => formatarMoeda(v ?? 0) }]}
+                      yAxis={[{ width: 56, valueFormatter: formatarCompacto }]}
+                      series={[{ data: painel.serie.saldo, label: 'Saldo', color: tema.palette.primary.main, area: true, showMark: painel.serie.saldo.length <= 12, valueFormatter: (v) => formatarMoeda(v ?? 0) }]}
                     />
                   )}
                 </CartaoGrafico>
@@ -254,8 +261,8 @@ export default function Inicio() {
                         {painel.atual.despesas === 0 ? <Typography color="text.secondary">Nenhuma despesa.</Typography> : (
                           <>
                             <Stack direction="row" spacing="2px" sx={{ height: 10 }}>
-                              {painel.atual.fixas > 0 && <Box sx={{ flex: painel.atual.fixas, bgcolor: '#7c83ff', borderRadius: '4px' }} />}
-                              {painel.atual.variaveis > 0 && <Box sx={{ flex: painel.atual.variaveis, bgcolor: '#f59e0b', borderRadius: '4px' }} />}
+                              {painel.atual.fixas > 0 && <Box sx={{ flex: painel.atual.fixas, bgcolor: 'primary.main', borderRadius: '4px' }} />}
+                              {painel.atual.variaveis > 0 && <Box sx={{ flex: painel.atual.variaveis, bgcolor: 'warning.main', borderRadius: '4px' }} />}
                             </Stack>
                             <Stack direction="row" sx={{ justifyContent: 'space-between', mt: 0.75 }}>
                               <Typography variant="caption" color="text.secondary">● Fixas {formatarMoeda(painel.atual.fixas)}</Typography>

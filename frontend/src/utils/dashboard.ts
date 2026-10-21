@@ -1,4 +1,6 @@
 import type { Movimentacao } from '../services/movimentacoes';
+import { paletaCategorica } from '../tema';
+import type { ModoCor } from '../tema';
 
 export type Periodo = { inicio: string; fim: string };
 export type PresetPeriodo = 'mes' | '3m' | '6m' | '12m' | 'ano' | 'custom';
@@ -11,7 +13,6 @@ export const PRESETS: { valor: Exclude<PresetPeriodo, 'custom'>; rotulo: string 
 	{ valor: 'ano', rotulo: 'Este ano' },
 ];
 
-const CORES_CATEGORIA = ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#008300', '#9085e9', '#e66767'];
 export const COR_OUTROS = '#6b7280';
 
 const formatar = (data: Date) => data.toLocaleDateString('sv-SE');
@@ -106,9 +107,9 @@ export function serieTemporal(movimentacoes: Movimentacao[], periodo: Periodo) {
 }
 
 /** Cor por categoria: fixa pelo nome (ordem alfabética entre todas as despesas), nunca pelo ranking do período. */
-export function coresDasCategorias(movimentacoes: Movimentacao[]) {
+export function coresDasCategorias(movimentacoes: Movimentacao[], modo: ModoCor) {
 	const nomes = [...new Set(movimentacoes.filter((item) => item.tipo === 'DESPESA').map((item) => item.nome_categoria))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-	return new Map(nomes.map((nome, indice) => [nome, CORES_CATEGORIA[indice] ?? COR_OUTROS]));
+	return new Map(nomes.map((nome, indice) => [nome, paletaCategorica(modo)[indice] ?? COR_OUTROS]));
 }
 
 export function despesasPorCategoria(itens: Movimentacao[], cores: Map<string, string>) {

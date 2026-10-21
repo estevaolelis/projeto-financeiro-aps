@@ -54,7 +54,7 @@ export default function Acesso() {
   return (
     <Box sx={{ maxWidth: 1080, minHeight: 'calc(100vh - 220px)', mx: 'auto', display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 420px' }, gap: { xs: 4, md: 10 }, alignItems: 'center' }}>
       <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-        <Typography variant="overline" color="primary.light" sx={{ letterSpacing: '.22em', fontWeight: 700 }}>Sua vida financeira, com clareza</Typography>
+        <Typography variant="overline" color="primary.main" sx={{ letterSpacing: '.22em', fontWeight: 700 }}>Sua vida financeira, com clareza</Typography>
         <Typography variant="h2" sx={{ mt: 1, maxWidth: 600 }}>Um lugar seguro para cuidar dos seus planos.</Typography>
         <Typography variant="h6" color="text.secondary" sx={{ mt: 3, maxWidth: 560, fontWeight: 400, lineHeight: 1.6 }}>Crie sua conta para acompanhar suas decisões financeiras e manter seus dados organizados em um só lugar.</Typography>
       </Box>

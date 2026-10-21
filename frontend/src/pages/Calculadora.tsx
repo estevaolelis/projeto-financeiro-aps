@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Alert, Box, Button, MenuItem, Paper, Stack, Tab, Tabs, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, MenuItem, Paper, Stack, Tab, Tabs, TextField, Typography, useTheme } from '@mui/material';
+import type { Theme } from '@mui/material';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { Calculator, LifeBuoy, TrendingUp, Wallet } from 'lucide-react';
 import { listarMovimentacoes } from '../services/movimentacoes';
-import { formatarMoeda } from '../utils/formatacao';
+import { formatarCompacto, formatarMoeda } from '../utils/formatacao';
+import { corDestaque, paletaCategorica } from '../tema';
 import {
   formatarPrazo, jurosCompostos, mesesParaMeta, numero, quitarDivida, taxaMensal,
 } from '../utils/simuladores';
@@ -62,9 +64,9 @@ const valorMonetario = (n: number) => naoNegativo(n) || limiteValor(n);
 const valorPositivo = (n: number) => positivo(n) || limiteValor(n);
 const taxaPercentual = (n: number) => (n > 100 ? 'Use até 100%.' : '');
 
-function Resultado({ titulo, valor, cor, detalhe }: { titulo: string; valor: ReactNode; cor?: string; detalhe?: string }) {
+function Resultado({ titulo, valor, cor, detalhe }: { titulo: string; valor: ReactNode; cor?: string | ((tema: Theme) => string); detalhe?: string }) {
   return (
-    <Paper sx={{ p: 2.5, bgcolor: 'rgba(255,255,255,.02)' }}>
+    <Paper sx={{ p: 2.5, bgcolor: 'action.hover' }}>
       <Typography variant="body2" color="text.secondary">{titulo}</Typography>
       <Typography variant="h5" sx={{ fontWeight: 800, color: cor, fontVariantNumeric: 'tabular-nums' }}>{valor}</Typography>
       {detalhe && <Typography variant="caption" color="text.secondary">{detalhe}</Typography>}
@@ -77,6 +79,7 @@ const GradeCampos = ({ children }: { children: ReactNode }) => (
 );
 
 function SimuladorJuros() {
+  const tema = useTheme();
   const [capital, definirCapital] = useState('1000');
   const [aporte, definirAporte] = useState('300');
   const [taxa, definirTaxa] = useState('10');
@@ -125,15 +128,16 @@ function SimuladorJuros() {
         <>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
             <Resultado titulo="Total investido" valor={formatarMoeda(resultado.calculo.investido)} />
-            <Resultado titulo="Juros ganhos" valor={formatarMoeda(resultado.calculo.juros)} cor="#66bb6a" />
-            <Resultado titulo="Montante final" valor={formatarMoeda(resultado.calculo.montante)} cor="#aab0ff" detalhe={`em ${formatarPrazo(resultado.meses)}`} />
+            <Resultado titulo="Juros ganhos" valor={formatarMoeda(resultado.calculo.juros)} cor="success.main" />
+            <Resultado titulo="Montante final" valor={formatarMoeda(resultado.calculo.montante)} cor={corDestaque} detalhe={`em ${formatarPrazo(resultado.meses)}`} />
           </Box>
           <LineChart
             height={300}
-            xAxis={[{ scaleType: 'linear', data: grafico.map((ponto) => ponto.mes), label: 'Meses', valueFormatter: (mes: number) => `Mês ${mes}` }]}
+            xAxis={[{ scaleType: 'linear', data: grafico.map((ponto) => ponto.mes), label: 'Meses', valueFormatter: (mes: number, contexto) => (contexto.location === 'tooltip' ? `Mês ${mes}` : String(mes)) }]}
+            yAxis={[{ width: 56, valueFormatter: formatarCompacto }]}
             series={[
-              { data: grafico.map((ponto) => ponto.investido), label: 'Total investido', color: '#3987e5', showMark: false, valueFormatter: (v) => formatarMoeda(v ?? 0) },
-              { data: grafico.map((ponto) => ponto.montante), label: 'Montante', color: '#199e70', area: true, showMark: false, valueFormatter: (v) => formatarMoeda(v ?? 0) },
+              { data: grafico.map((ponto) => ponto.investido), label: 'Total investido', color: paletaCategorica(tema.palette.mode)[0], showMark: false, valueFormatter: (v) => formatarMoeda(v ?? 0) },
+              { data: grafico.map((ponto) => ponto.montante), label: 'Montante', color: paletaCategorica(tema.palette.mode)[2], area: true, showMark: false, valueFormatter: (v) => formatarMoeda(v ?? 0) },
             ]}
           />
           <Typography variant="caption" color="text.secondary">Aportes feitos no fim de cada mês. Simulação sem impostos, taxas ou inflação; rentabilidade passada não garante resultados futuros.</Typography>
@@ -205,8 +209,8 @@ function SimuladorReserva() {
       {resultado && (
         <>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
-            <Resultado titulo="Meta da reserva" valor={formatarMoeda(resultado.meta)} cor="#aab0ff" />
-            <Resultado titulo="Falta guardar" valor={formatarMoeda(resultado.falta)} cor={resultado.falta === 0 ? '#66bb6a' : undefined} />
+            <Resultado titulo="Meta da reserva" valor={formatarMoeda(resultado.meta)} cor={corDestaque} />
+            <Resultado titulo="Falta guardar" valor={formatarMoeda(resultado.falta)} cor={resultado.falta === 0 ? 'success.main' : undefined} />
             <Resultado titulo="Tempo para alcançar" valor={resultado.prazo === null ? 'Não alcançável' : formatarPrazo(resultado.prazo)}
               detalhe={resultado.prazo === null ? 'Aumente o valor guardado por mês.' : undefined} />
           </Box>
@@ -215,7 +219,7 @@ function SimuladorReserva() {
               <Typography variant="body2" color="text.secondary">Progresso da reserva</Typography>
               <Typography variant="body2" color="text.secondary">{resultado.progresso.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%</Typography>
             </Stack>
-            <Box sx={{ height: 10, borderRadius: 999, bgcolor: 'rgba(255,255,255,.08)' }}>
+            <Box sx={{ height: 10, borderRadius: 999, bgcolor: 'action.selected' }}>
               <Box sx={{ height: 10, borderRadius: 999, bgcolor: resultado.progresso >= 100 ? 'success.main' : 'primary.main', width: `${resultado.progresso}%`, transition: 'width .4s ease' }} />
             </Box>
           </Box>
@@ -260,9 +264,9 @@ function SimuladorDivida() {
       {resultado && resultado.base.quita && (
         <>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
-            <Resultado titulo="Tempo para quitar" valor={formatarPrazo(resultado.base.meses)} cor="#aab0ff" />
+            <Resultado titulo="Tempo para quitar" valor={formatarPrazo(resultado.base.meses)} cor={corDestaque} />
             <Resultado titulo="Total pago" valor={formatarMoeda(resultado.base.totalPago)} />
-            <Resultado titulo="Total de juros" valor={formatarMoeda(resultado.base.totalJuros)} cor="#ef5350" />
+            <Resultado titulo="Total de juros" valor={formatarMoeda(resultado.base.totalJuros)} cor="error.main" />
           </Box>
           {resultado.maisAlto.quita && (
             <Alert severity="success" icon={<TrendingUp size={20} />}>
@@ -288,7 +292,7 @@ export default function Calculadora() {
     <Stack spacing={3}>
       <Box>
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-          <Calculator size={28} color="#7c83ff" />
+          <Box sx={{ color: 'primary.main', display: 'inline-flex' }}><Calculator size={28} /></Box>
           <Typography variant="h4" sx={{ fontWeight: 800 }}>Simuladores financeiros</Typography>
         </Stack>
         <Typography color="text.secondary">Teste cenários e tome decisões com mais segurança.</Typography>
