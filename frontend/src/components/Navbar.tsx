@@ -4,12 +4,13 @@ import {
   AppBar, Box, Button, Container, Drawer, IconButton, List, ListItem,
   ListItemButton, ListItemIcon, ListItemText, Stack, Toolbar, Typography,
 } from '@mui/material';
-import { ArrowLeftRight, Calculator, HelpCircle, Menu, TrendingUp, UserCheck, Video, X } from 'lucide-react';
+import { ArrowLeftRight, Calculator, PiggyBank, HelpCircle, Menu, TrendingUp, UserCheck, Video, X } from 'lucide-react';
 import { limparSessao, obterUsuarioArmazenado } from '../services/sessao';
 
 const itensNavegacao = [
   { nome: 'Início', caminho: '/', icone: TrendingUp },
   { nome: 'Movimentações', caminho: '/movimentacoes', icone: ArrowLeftRight },
+  { nome: 'Orçamentos', caminho: '/orcamentos', icone: PiggyBank },
   { nome: 'Calculadora', caminho: '/calculadora', icone: Calculator },
   { nome: 'Perfil de Investidor', caminho: '/perfil', icone: UserCheck },
   { nome: 'Orientações Financeiras', caminho: '/videos', icone: Video },
