@@ -7,7 +7,6 @@ from mysql.connector import IntegrityError
 from app.config import configuracoes
 from app.database import obter_conexao
 from app.models.auth_model import (
-    RespostaEntrada,
     RespostaUsuario,
     SolicitacaoCadastro,
     SolicitacaoEntrada,
@@ -28,6 +27,9 @@ class ErroTokenInvalido(Exception):
 
 class ErroUsuarioNaoEncontrado(Exception):
     """Indica que o usuário do token não existe mais."""
+
+
+_HASH_FICTICIO = bcrypt.hashpw(b"senha-ficticia", bcrypt.gensalt())
 
 
 def _criar_token(id_usuario: int) -> str:
@@ -74,7 +76,7 @@ def cadastrar_usuario(dados: SolicitacaoCadastro) -> RespostaUsuario:
     return RespostaUsuario(id_usuario=int(id_usuario), nome=nome, email=email)
 
 
-def autenticar_usuario(dados: SolicitacaoEntrada) -> RespostaEntrada:
+def autenticar_usuario(dados: SolicitacaoEntrada) -> tuple[str, RespostaUsuario]:
     with obter_conexao() as conexao:
         cursor = conexao.cursor()
         try:
@@ -86,16 +88,13 @@ def autenticar_usuario(dados: SolicitacaoEntrada) -> RespostaEntrada:
         finally:
             cursor.close()
 
-    if registro is None or not bcrypt.checkpw(
-        dados.senha.encode(), str(registro[3]).encode()
-    ):
+    hash_senha = str(registro[3]).encode() if registro is not None else _HASH_FICTICIO
+    senha_confere = bcrypt.checkpw(dados.senha.encode(), hash_senha)
+    if registro is None or not senha_confere:
         raise ErroCredenciaisInvalidas
 
     usuario = _para_resposta_usuario(registro)
-    return RespostaEntrada(
-        token_acesso=_criar_token(usuario.id_usuario),
-        usuario=usuario,
-    )
+    return _criar_token(usuario.id_usuario), usuario
 
 
 def obter_usuario_do_token(token: str) -> RespostaUsuario:

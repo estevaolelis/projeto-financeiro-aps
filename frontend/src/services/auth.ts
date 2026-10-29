@@ -1,5 +1,10 @@
 import { requisitar } from './http';
-import type { RespostaAutenticacao, Usuario } from './sessao';
+
+export type Usuario = {
+	id_usuario: number;
+	nome: string;
+	email: string;
+};
 
 export function cadastrar(nome: string, email: string, senha: string) {
 	return requisitar<Usuario>('/api/autenticacao/cadastro', {
@@ -9,8 +14,16 @@ export function cadastrar(nome: string, email: string, senha: string) {
 }
 
 export function entrar(email: string, senha: string) {
-	return requisitar<RespostaAutenticacao>('/api/autenticacao/entrar', {
+	return requisitar<Usuario>('/api/autenticacao/entrar', {
 		method: 'POST',
 		body: JSON.stringify({ email, senha }),
 	});
+}
+
+export function obterUsuarioAtual() {
+	return requisitar<Usuario>('/api/autenticacao/eu');
+}
+
+export function sair() {
+	return requisitar<void>('/api/autenticacao/sair', { method: 'POST' });
 }

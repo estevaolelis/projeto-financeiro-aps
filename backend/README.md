@@ -24,4 +24,6 @@ pip install -r requirements.txt
 uvicorn app.main:aplicacao --reload
 ```
 
-A API já está configurada para aceitar requisições do frontend em `http://localhost:5173` e `http://localhost:3000`.
+As origens aceitas vêm de `ORIGENS_CORS` no `.env` (padrão: `http://localhost:5173`). A sessão usa um cookie `HttpOnly`; em desenvolvimento o frontend chama `/api` pelo proxy do Vite.
+
+`SEGREDO_JWT` é obrigatório (mínimo de 32 caracteres): a API não sobe sem ele.

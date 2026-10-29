@@ -4,12 +4,13 @@ import { Alert, Box, Button, Divider, Paper, Stack, Tab, Tabs, TextField, Typogr
 import { ArrowRight, LockKeyhole, UserPlus } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { cadastrar, entrar } from '../services/auth';
-import { estaAutenticado, salvarSessao } from '../services/sessao';
+import { useSessao } from '../contexto/sessao';
 
 type Modo = 'entrada' | 'cadastro';
 
 export default function Acesso() {
   const navegar = useNavigate();
+  const { usuario, carregando: carregandoSessao, definirUsuario } = useSessao();
   const [modo, definirModo] = useState<Modo>('entrada');
   const [nome, definirNome] = useState('');
   const [email, definirEmail] = useState('');
@@ -18,7 +19,8 @@ export default function Acesso() {
   const [sucesso, definirSucesso] = useState('');
   const [carregando, definirCarregando] = useState(false);
 
-  if (estaAutenticado()) {
+  if (carregandoSessao) return null;
+  if (usuario) {
     return <Navigate to="/" replace />;
   }
 
@@ -40,8 +42,7 @@ export default function Acesso() {
         definirSenha('');
         definirSucesso('Cadastro realizado. Agora entre com seus dados.');
       } else {
-        const sessao = await entrar(email, senha);
-        salvarSessao(sessao);
+        definirUsuario(await entrar(email, senha));
         navegar('/');
       }
     } catch (erroRequisicao) {

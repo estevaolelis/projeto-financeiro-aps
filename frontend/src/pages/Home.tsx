@@ -11,13 +11,13 @@ import { LineChart, lineClasses } from '@mui/x-charts/LineChart';
 import { PieChart } from '@mui/x-charts/PieChart';
 import AlertasOrcamento from '../components/AlertasOrcamento';
 import ContadorMoeda from '../components/ContadorMoeda';
-import { obterUsuarioArmazenado } from '../services/sessao';
 import { listarMovimentacoes } from '../services/movimentacoes';
 import type { Movimentacao } from '../services/movimentacoes';
 import { listarOrcamentos } from '../services/orcamentos';
 import type { Orcamento } from '../services/orcamentos';
 import { formatarCompacto, formatarData, formatarMoeda, hoje } from '../utils/formatacao';
 import { useModoCor } from '../contexto/modoCor';
+import { useSessao } from '../contexto/sessao';
 import { corDestaque } from '../tema';
 import {
   PRESETS, coresDasCategorias, despesasPorCategoria, noPeriodo, periodoAnterior, periodoDoPreset,
@@ -81,7 +81,7 @@ const SemDados = ({ texto }: { texto: string }) => (
 );
 
 export default function Inicio() {
-  const usuario = obterUsuarioArmazenado();
+  const { usuario } = useSessao();
   const tema = useTheme();
   const { modo } = useModoCor();
   const [movimentacoes, definirMovimentacoes] = useState<Movimentacao[]>([]);

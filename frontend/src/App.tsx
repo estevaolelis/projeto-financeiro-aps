@@ -1,6 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import { Box, Container } from '@mui/material';
+import { Box, CircularProgress, Container } from '@mui/material';
 import BarraNavegacao from './components/Navbar';
 import Rodape from './components/Footer';
 import Inicio from './pages/Home';
@@ -11,10 +11,12 @@ import PerguntasFrequentes from './pages/FAQ';
 import Acesso from './pages/Acesso';
 import Movimentacoes from './pages/Movimentacoes';
 import Orcamentos from './pages/Orcamentos';
-import { estaAutenticado } from './services/sessao';
+import { useSessao } from './contexto/sessao';
 
 function RotaProtegida({ children: conteudo }: { children: ReactNode }) {
-  return estaAutenticado() ? conteudo : <Navigate to="/acesso" replace />;
+  const { usuario, carregando } = useSessao();
+  if (carregando) return <Box sx={{ display: 'grid', placeItems: 'center', py: 10 }}><CircularProgress /></Box>;
+  return usuario ? conteudo : <Navigate to="/acesso" replace />;
 }
 
 export default function Aplicacao() {

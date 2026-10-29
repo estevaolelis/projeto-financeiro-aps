@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
 
-from app.controllers.auth_controller import cadastrar, entrar, eu
-from app.models.auth_model import RespostaEntrada, RespostaUsuario
+from app.controllers.auth_controller import cadastrar, entrar, eu, sair
+from app.models.auth_model import RespostaUsuario
 
 roteador = APIRouter(prefix="/api/autenticacao", tags=["autenticacao"])
 
@@ -16,6 +16,12 @@ roteador.add_api_route(
     "/entrar",
     entrar,
     methods=["POST"],
-    response_model=RespostaEntrada,
+    response_model=RespostaUsuario,
+)
+roteador.add_api_route(
+    "/sair",
+    sair,
+    methods=["POST"],
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 roteador.add_api_route("/eu", eu, methods=["GET"], response_model=RespostaUsuario)

@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   alpha, AppBar, Box, Button, Container, Drawer, IconButton, List, ListItem,
   ListItemButton, ListItemIcon, ListItemText, Stack, Toolbar, Tooltip, Typography,
 } from '@mui/material';
 import { ArrowLeftRight, Calculator, PiggyBank, HelpCircle, Menu, Moon, Sun, TrendingUp, UserCheck, Video, X } from 'lucide-react';
-import { limparSessao, obterUsuarioArmazenado } from '../services/sessao';
+import { useSessao } from '../contexto/sessao';
 import { useModoCor } from '../contexto/modoCor';
 import { corDestaque } from '../tema';
 
@@ -22,10 +22,12 @@ const itensNavegacao = [
 export default function BarraNavegacao() {
   const navegar = useNavigate();
   const [menuMovelAberto, definirMenuMovelAberto] = useState(false);
-  const usuario = obterUsuarioArmazenado();
+  const { pathname: caminhoAtual } = useLocation();
+  const { usuario, sair: encerrarSessao } = useSessao();
+  const exibirRotas = Boolean(usuario) && caminhoAtual !== '/acesso';
   const { modo, alternar } = useModoCor();
   const fecharMenuMovel = () => definirMenuMovelAberto(false);
-  const sair = () => { limparSessao(); navegar('/acesso'); };
+  const sair = async () => { await encerrarSessao(); navegar('/acesso'); };
 
   return (
     <AppBar position="sticky" color="transparent" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: (tema) => alpha(tema.palette.background.default, 0.72), backdropFilter: 'blur(16px) saturate(140%)' }}>
@@ -34,25 +36,25 @@ export default function BarraNavegacao() {
           <Typography component={NavLink} to="/" variant="h6" sx={{ color: 'text.primary', textDecoration: 'none', fontWeight: 800, letterSpacing: '-0.02em', mr: 'auto' }}>
             Finanças<Box component="span" sx={{ color: 'primary.main' }}>.</Box>
           </Typography>
-          <Stack direction="row" spacing={0.5} sx={{ display: { xs: 'none', md: 'flex' } }}>
+          {exibirRotas && <Stack direction="row" spacing={0.5} sx={{ display: { xs: 'none', md: 'flex' } }}>
             {itensNavegacao.map(({ nome, caminho, icone: Icone }) => (
               <Button key={caminho} component={NavLink} to={caminho} startIcon={<Icone size={17} />} sx={{ color: 'text.secondary', borderRadius: 999, px: 1.75, '&:hover': { color: 'text.primary', bgcolor: 'action.hover' }, '&.active': { color: corDestaque, bgcolor: (tema) => alpha(tema.palette.primary.main, 0.16) } }}>
                 {nome}
               </Button>
             ))}
-          </Stack>
+          </Stack>}
           <Tooltip title={modo === 'dark' ? 'Mudar para o modo claro' : 'Mudar para o modo escuro'}>
             <IconButton onClick={alternar} color="inherit" aria-label={modo === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}>
               {modo === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </IconButton>
           </Tooltip>
           {usuario ? <Button onClick={sair} color="inherit">Sair</Button> : <Button component={NavLink} to="/acesso" variant="contained" startIcon={<UserCheck size={17} />}>Entrar</Button>}
-          <IconButton onClick={() => definirMenuMovelAberto(true)} sx={{ display: { xs: 'inline-flex', md: 'none' } }} aria-label="Abrir menu">
+          {exibirRotas && <IconButton onClick={() => definirMenuMovelAberto(true)} sx={{ display: { xs: 'inline-flex', md: 'none' } }} aria-label="Abrir menu">
             <Menu />
-          </IconButton>
+          </IconButton>}
         </Toolbar>
       </Container>
-      <Drawer anchor="right" open={menuMovelAberto} onClose={fecharMenuMovel}>
+      <Drawer anchor="right" open={exibirRotas && menuMovelAberto} onClose={fecharMenuMovel}>
         <Box sx={{ width: 280, pt: 1 }} role="presentation">
           <Stack direction="row" sx={{ justifyContent: 'flex-end', px: 1 }}>
             <IconButton onClick={fecharMenuMovel} aria-label="Fechar menu"><X /></IconButton>

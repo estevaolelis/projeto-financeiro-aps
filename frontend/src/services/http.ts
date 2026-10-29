@@ -1,6 +1,4 @@
-import { limparSessao } from './sessao';
-
-const URL_API = import.meta.env.VITE_URL_API ?? 'http://localhost:8000';
+const URL_API = import.meta.env.VITE_URL_API ?? '';
 
 export class ErroHttp extends Error {
 	status: number;
@@ -11,9 +9,10 @@ export class ErroHttp extends Error {
 	}
 }
 
-export async function requisitar<T>(caminho: string, opcoes: RequestInit): Promise<T> {
+export async function requisitar<T>(caminho: string, opcoes: RequestInit = {}): Promise<T> {
 	const resposta = await fetch(`${URL_API}${caminho}`, {
 		...opcoes,
+		credentials: 'include',
 		headers: { 'Content-Type': 'application/json', ...opcoes.headers },
 	});
 	const corpo = await resposta.json().catch(() => ({}));
@@ -27,15 +26,10 @@ export async function requisitar<T>(caminho: string, opcoes: RequestInit): Promi
 }
 
 export async function requisitarAutenticado<T>(caminho: string, opcoes: RequestInit = {}): Promise<T> {
-	const token = localStorage.getItem('financeiro_token');
 	try {
-		return await requisitar<T>(caminho, {
-			...opcoes,
-			headers: { Authorization: `Bearer ${token}` },
-		});
+		return await requisitar<T>(caminho, opcoes);
 	} catch (erro) {
 		if (erro instanceof ErroHttp && erro.status === 401) {
-			limparSessao();
 			window.location.assign('/acesso');
 		}
 		throw erro;
